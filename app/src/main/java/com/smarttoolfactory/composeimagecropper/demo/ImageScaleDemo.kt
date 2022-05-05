@@ -20,25 +20,6 @@ import com.smarttoolfactory.imagecropper.ScalableImage
 import kotlin.math.max
 import kotlin.math.min
 
-private fun computeFillMaxDimension(srcSize: Size, dstSize: Size): Float {
-    val widthScale = computeFillWidth(srcSize, dstSize)
-    val heightScale = computeFillHeight(srcSize, dstSize)
-    return max(widthScale, heightScale)
-}
-
-private fun computeFillMinDimension(srcSize: Size, dstSize: Size): Float {
-    val widthScale = computeFillWidth(srcSize, dstSize)
-    val heightScale = computeFillHeight(srcSize, dstSize)
-    return min(widthScale, heightScale)
-}
-
-
-private fun computeFillWidth(srcSize: Size, dstSize: Size): Float =
-    dstSize.width / srcSize.width
-
-private fun computeFillHeight(srcSize: Size, dstSize: Size): Float =
-    dstSize.height / srcSize.height
-
 
 @Composable
 fun ImageScaleDemo() {
@@ -53,8 +34,10 @@ fun ImageScaleDemo() {
             .background(Color.LightGray)
 //        .clipToBounds()
             .border(2.dp, Color.Red)
-//        .size(300.dp, 100.dp)
+        .size(300.dp, 100.dp)
 //            .size(200.dp, height = 300.dp)
+            .fillMaxWidth()
+//            .aspectRatio(3/4f)
 
         val imageBitmapLarge = ImageBitmap.imageResource(
             LocalContext.current.resources,
@@ -65,13 +48,6 @@ fun ImageScaleDemo() {
             LocalContext.current.resources,
             R.drawable.landscape10
         )
-
-        val imageWidthLarge = imageBitmapLarge.width
-        val imageHeightLarge = imageBitmapLarge.height
-
-        val imageWidthSmall = imageBitmapSmall.width
-        val imageHeightSmall = imageBitmapSmall.height
-
 
         Spacer(modifier = Modifier.height(10.dp))
         Text(text = "ScalableImage ImageScale.FillBounds")
@@ -90,6 +66,16 @@ fun ImageScaleDemo() {
             imageScale = ImageScale.Fit,
             contentDescription = null
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(text = "ScalableImage ImageScale.Crop")
+        ScalableImage(
+            modifier = modifier,
+            bitmap = imageBitmapLarge,
+            imageScale = ImageScale.Crop,
+            contentDescription = null
+        )
+
 
         ImageSamples(modifier = modifier, imageBitmap = imageBitmapLarge)
     }

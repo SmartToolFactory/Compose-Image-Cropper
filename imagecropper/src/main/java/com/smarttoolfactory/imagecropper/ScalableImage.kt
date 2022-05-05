@@ -14,6 +14,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -22,7 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.*
 
 enum class ImageScale {
-    Fit, FillBounds
+    Fit, FillBounds, Crop
 }
 
 /**
@@ -116,8 +118,8 @@ fun ScalableImage(
 
     BoxWithConstraints(
         modifier = modifier
-            .then(semantics)
-            .clipToBounds(),
+            .then(semantics),
+//            .clipToBounds()
         contentAlignment = alignment,
     ) {
 
@@ -126,42 +128,38 @@ fun ScalableImage(
 
         val bitmapWidth = bitmap.width
         val bitmapHeight = bitmap.height
-        val bitmapAspectRatio: Float = bitmapWidth.toFloat() / bitmapHeight
 
-        var width: Int
-        var height: Int
+        val srcSize = Size(bitmapWidth.toFloat(), bitmapHeight.toFloat())
+        val dstSize = Size(constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat())
 
-        when (imageScale) {
-            ImageScale.FillBounds -> {
-                width = boxWidth.coerceAtLeast(bitmapWidth)
-                height = boxHeight.coerceAtLeast(bitmapHeight)
-            }
-            ImageScale.Fit -> {
-                width = boxWidth
-                height = (boxWidth / bitmapAspectRatio).toInt()
+        val scaleFactor = calculateScaleFactor(imageScale, srcSize, dstSize)
 
-                if (height > boxHeight) {
-                    height = boxHeight.toFloat().toInt().coerceAtLeast(bitmapHeight)
-                    width = (boxHeight * bitmapAspectRatio).toInt().coerceAtLeast(bitmapWidth)
-                }
-            }
-        }
-
-        val hasBoundedDimens = constraints.hasBoundedWidth && constraints.hasBoundedHeight
-        val hasFixedDimens = constraints.hasFixedWidth && constraints.hasFixedHeight
-
-        println("🚀ScalableImage() imageScale: $imageScale, width: $width, height: $width, " +
-                "hasBoundedDimens $hasBoundedDimens, hasFixedDimens: $hasFixedDimens\n" +
-                "constraints: $constraints")
-
+        val width = bitmapWidth * scaleFactor.scaleX
+        val height = bitmapHeight * scaleFactor.scaleY
 
         val widthInDp: Dp
         val heightInDp: Dp
 
         with(LocalDensity.current) {
-            widthInDp = width.toDp()
-            heightInDp = height.toDp()
+            widthInDp = bitmapWidth * scaleFactor.scaleX.toDp()
+            heightInDp = bitmapHeight * scaleFactor.scaleY.toDp()
         }
+
+        val topLeft = Offset(
+            x = (boxWidth - width),
+            y = (boxHeight - height)
+        )
+
+        println(
+            "🚀ScalableImage() imageScale: $imageScale\n" +
+                    "constraints: $constraints\n" +
+                    "bitmapWidth: $bitmapWidth, bitmapHeight: $bitmapHeight, " +
+                    "boxWidth: $boxWidth, boxHeight: $boxHeight\n" +
+                    "scaleX: ${scaleFactor.scaleX}, scaleY: ${scaleFactor.scaleY}\n" +
+                    "width: $width, height: $height, widthInDp: $widthInDp, heightInDp: $heightInDp\n" +
+                    "topLeft: $topLeft\n\n"
+        )
+
 
         val density = LocalDensity.current
 
@@ -172,8 +170,8 @@ fun ScalableImage(
                 imageWidth = widthInDp,
                 imageHeight = heightInDp,
                 topLeft = Offset(
-                    x = (boxWidth - width).toFloat(),
-                    y = (boxHeight - height).toFloat()
+                    x = (boxWidth - width),
+                    y = (boxHeight - height)
                 )
             )
         }
@@ -182,6 +180,8 @@ fun ScalableImage(
             modifier = Modifier.size(widthInDp, heightInDp),
             bitmap = bitmap,
             alpha = alpha,
+            width = width.toInt(),
+            height = height.toInt(),
             colorFilter = colorFilter,
             filterQuality = filterQuality
         )
@@ -191,9 +191,35 @@ fun ScalableImage(
 }
 
 @Composable
+private fun calculateScaleFactor(
+    imageScale: ImageScale,
+    srcSize: Size,
+    dstSize: Size
+) = when (imageScale) {
+    ImageScale.FillBounds -> {
+        ScaleFactor(
+            computeFillWidth(srcSize, dstSize),
+            computeFillHeight(srcSize, dstSize)
+        )
+    }
+    ImageScale.Fit -> {
+        computeFillMinDimension(srcSize, dstSize).let {
+            ScaleFactor(it, it)
+        }
+    }
+    ImageScale.Crop -> {
+        computeFillMaxDimension(srcSize, dstSize).let {
+            ScaleFactor(it, it)
+        }
+    }
+}
+
+@Composable
 private fun ScalableImageImpl(
     modifier: Modifier,
     bitmap: ImageBitmap,
+    width: Int,
+    height: Int,
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
@@ -202,23 +228,34 @@ private fun ScalableImageImpl(
     val bitmapHeight = bitmap.height
 
     Canvas(
-        modifier = modifier.border(2.dp, Color.Yellow)
+        modifier = modifier
+            .clipToBounds()
+            .border(4.dp, Color.Yellow)
     ) {
 
         val canvasWidth = size.width.toInt()
         val canvasHeight = size.height.toInt()
 
-        drawImage(
-            bitmap,
-            srcSize = IntSize(bitmapWidth, bitmapHeight),
-            dstSize = IntSize(canvasWidth, canvasHeight),
-            dstOffset = IntOffset(0, 0),
-            alpha = alpha,
-            colorFilter = colorFilter,
-            filterQuality = filterQuality
-        )
+        println("CANVAS size: $size, width: $width, height: $height")
+
+        translate(
+            top = (-height + canvasHeight) / 2f,
+            left = (-width + canvasWidth) / 2f,
+
+            ) {
+            drawImage(
+                bitmap,
+                srcSize = IntSize(bitmapWidth, bitmapHeight),
+                dstSize = IntSize(width, height),
+                alpha = alpha,
+                colorFilter = colorFilter,
+                filterQuality = filterQuality
+            )
+        }
     }
 }
+
+data class ScaleFactor(val x: Float, val y: Float)
 
 private fun computeFillMaxDimension(srcSize: Size, dstSize: Size): Float {
     val widthScale = computeFillWidth(srcSize, dstSize)
