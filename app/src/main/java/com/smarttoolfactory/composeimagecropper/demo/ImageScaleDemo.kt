@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -17,8 +16,6 @@ import androidx.compose.ui.unit.sp
 import com.smarttoolfactory.composeimagecropper.R
 import com.smarttoolfactory.imagecropper.ImageScale
 import com.smarttoolfactory.imagecropper.ScalableImage
-import kotlin.math.max
-import kotlin.math.min
 
 
 @Composable
@@ -34,14 +31,14 @@ fun ImageScaleDemo() {
             .background(Color.LightGray)
 //        .clipToBounds()
             .border(2.dp, Color.Red)
-        .size(300.dp, 100.dp)
+            .size(300.dp, 500.dp)
 //            .size(200.dp, height = 300.dp)
             .fillMaxWidth()
 //            .aspectRatio(3/4f)
 
         val imageBitmapLarge = ImageBitmap.imageResource(
             LocalContext.current.resources,
-            R.drawable.landscape
+            R.drawable.landscape10
         )
 
         val imageBitmapSmall = ImageBitmap.imageResource(
