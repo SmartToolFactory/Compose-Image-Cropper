@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -137,6 +138,9 @@ fun ScalableImage(
         val width = bitmapWidth * scaleFactor.scaleX
         val height = bitmapHeight * scaleFactor.scaleY
 
+//        val width = (bitmapWidth * scaleFactor.scaleX).coerceAtLeast(boxWidth.toFloat())
+//        val height = (bitmapHeight * scaleFactor.scaleY).coerceAtLeast(boxHeight.toFloat())
+
         val widthInDp: Dp
         val heightInDp: Dp
 
@@ -145,10 +149,18 @@ fun ScalableImage(
             heightInDp = bitmapHeight * scaleFactor.scaleY.toDp()
         }
 
+        val scaledBitmapX = boxWidth / width
+        val scaledBitmapY = boxHeight / height
+
         val topLeft = Offset(
-            x = (boxWidth - width),
-            y = (boxHeight - height)
+            x = bitmapWidth * (width - boxWidth) / width / 2,
+            y = bitmapHeight * (height - boxHeight) / height / 2
         )
+
+        val size = Size(bitmapWidth * scaledBitmapX, bitmapHeight * scaledBitmapY)
+
+
+        val scaledImageRect = Rect(offset = topLeft, size = size)
 
         println(
             "🚀ScalableImage() imageScale: $imageScale\n" +
@@ -156,8 +168,9 @@ fun ScalableImage(
                     "bitmapWidth: $bitmapWidth, bitmapHeight: $bitmapHeight, " +
                     "boxWidth: $boxWidth, boxHeight: $boxHeight\n" +
                     "scaleX: ${scaleFactor.scaleX}, scaleY: ${scaleFactor.scaleY}\n" +
-                    "width: $width, height: $height, widthInDp: $widthInDp, heightInDp: $heightInDp\n" +
-                    "topLeft: $topLeft\n\n"
+                    "width: $width, height: $height\n" +
+                    "scaledImageRect: $scaledImageRect\n" +
+                    "scaledBitmapX: $scaledBitmapX, scaledBitmapY: $scaledBitmapY\n\n"
         )
 
 
@@ -169,10 +182,7 @@ fun ScalableImage(
                 constraints = constraints,
                 imageWidth = widthInDp,
                 imageHeight = heightInDp,
-                topLeft = Offset(
-                    x = (boxWidth - width),
-                    y = (boxHeight - height)
-                )
+              rect = scaledImageRect
             )
         }
 
@@ -236,7 +246,7 @@ private fun ScalableImageImpl(
         val canvasWidth = size.width.toInt()
         val canvasHeight = size.height.toInt()
 
-        println("CANVAS size: $size, width: $width, height: $height")
+        println("💬 CANVAS size: $size, width: $width, height: $height")
 
         translate(
             top = (-height + canvasHeight) / 2f,
@@ -328,9 +338,9 @@ interface ScalableImageScope {
     val imageHeight: Dp
 
     /**
-     * Top left position of Image in this Composable
+     * [Rect] that covers boundaries of [ImageBitmap]
      */
-    val topLeft: Offset
+    val rect: Rect
 }
 
 private data class ImageScopeImpl(
@@ -338,7 +348,7 @@ private data class ImageScopeImpl(
     override val constraints: Constraints,
     override val imageWidth: Dp,
     override val imageHeight: Dp,
-    override val topLeft: Offset,
+    override val rect: Rect,
 ) : ScalableImageScope {
 
     override val minWidth: Dp get() = with(density) { constraints.minWidth.toDp() }
