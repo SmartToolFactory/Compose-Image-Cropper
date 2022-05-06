@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,18 +28,21 @@ fun ImageScaleDemo() {
             .verticalScroll(rememberScrollState())
     ) {
 
+
+        val density = LocalDensity.current.density
+
         val modifier = Modifier
             .background(Color.LightGray)
 //        .clipToBounds()
             .border(2.dp, Color.Red)
-            .size(300.dp, 500.dp)
-//            .size(200.dp, height = 300.dp)
-            .fillMaxWidth()
+//            .size(300.dp, 500.dp)
+            .size((1000/density).dp, height = (600/density).dp)
+//            .fillMaxWidth()
 //            .aspectRatio(3/4f)
 
         val imageBitmapLarge = ImageBitmap.imageResource(
             LocalContext.current.resources,
-            R.drawable.landscape10
+            R.drawable.rome
         )
 
         val imageBitmapSmall = ImageBitmap.imageResource(
