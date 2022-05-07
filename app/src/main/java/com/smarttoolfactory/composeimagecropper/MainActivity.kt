@@ -32,11 +32,12 @@ class MainActivity : ComponentActivity() {
             ComposeImageCropperTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                   Column() {
-                       HomeContent()
+                   Column(modifier=Modifier.fillMaxSize()) {
+//                       HomeContent()
+                       ThumbnailDemo()
+//                       ImageScaleDemo()
                    }
                 }
             }
@@ -54,7 +55,7 @@ private fun HomeContent() {
     val coroutineScope = rememberCoroutineScope()
 
     ScrollableTabRow(
-        backgroundColor = Color(0xff00897B),
+        backgroundColor = Color(0xff03a9f4),
         contentColor = Color.White,
         edgePadding = 8.dp,
         // Our selected tab is our current page
