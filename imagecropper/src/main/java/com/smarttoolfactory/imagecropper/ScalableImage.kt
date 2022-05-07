@@ -1,7 +1,6 @@
 package com.smarttoolfactory.imagecropper
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -31,50 +30,6 @@ enum class ImageScale {
  *
  * * [ScalableImageScope] contains [Constraints] since [ScalableImage] uses [BoxWithConstraints]
  * also it contains information about canvas width, height and top left position relative
- * to parent [BoxWithConstraints]
- *
- * @param alignment determines where image will be aligned inside [BoxWithConstraints]
- * This is observable when bitmap image/width ratio differs from [Canvas] that draws [ImageBitmap]
- * @param contentDescription
- * @param imageScale how image should be scaled inside Canvas to match parent dimensions.
- * [ImageScale.Fit] for instance maintains src ratio and scales image to fit inside the parent.
- * @param alpha Opacity to be applied to [bitmap] from 0.0f to 1.0f representing
- * fully transparent to fully opaque respectively
- * @param colorFilter ColorFilter to apply to the [bitmap] when drawn into the destination
- * @param filterQuality Sampling algorithm applied to the [bitmap] when it is scaled and drawn
- * into the destination. The default is [FilterQuality.Low] which scales using a bilinear
- * sampling algorithm
- */
-@Composable
-fun ScalableImage(
-    modifier: Modifier = Modifier,
-    bitmap: ImageBitmap,
-    alignment: Alignment = Alignment.Center,
-    contentDescription: String?,
-    imageScale: ImageScale = ImageScale.Fit,
-    alpha: Float = DefaultAlpha,
-    colorFilter: ColorFilter? = null,
-    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality
-) {
-
-    ScalableImage(
-        modifier = modifier,
-        bitmap = bitmap,
-        alignment = alignment,
-        imageScale = imageScale,
-        contentDescription = contentDescription,
-        alpha = alpha,
-        colorFilter = colorFilter,
-        filterQuality = filterQuality,
-        content = {})
-}
-
-/**
- * A composable that lays out and draws a given [ImageBitmap]. This will attempt to
- * size the composable according to the [ImageBitmap]'s given width and height.
- *
- * * [ScalableImageScope] contains [Constraints] since [ScalableImage] uses [BoxWithConstraints]
- * also it contains information about canvas width, height and top left position relative
  * to parent [BoxWithConstraints].
  *
  * @param alignment determines where image will be aligned inside [BoxWithConstraints]
@@ -88,7 +43,7 @@ fun ScalableImage(
  * @param filterQuality Sampling algorithm applied to the [bitmap] when it is scaled and drawn
  * into the destination. The default is [FilterQuality.Low] which scales using a bilinear
  * sampling algorithm
- * @param content is a Composable that can be matched at exact position where image is drawn.
+ * @param content is a Composable that can be matched at exact position where [bitmap] is drawn.
  * This is useful for drawing thumbs, cropping or another layout that should match position
  * with the image that is scaled is drawn
  */
@@ -102,7 +57,7 @@ fun ScalableImage(
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
-    content: @Composable ScalableImageScope.() -> Unit
+    content: @Composable ScalableImageScope.() -> Unit = {}
 ) {
 
     val semantics = if (contentDescription != null) {
@@ -172,57 +127,72 @@ fun ScalableImage(
             height = (bitmapHeight * scaledBitmapY).toInt().coerceAtMost(bitmapHeight)
         )
 
-
         val scaledImageRect = IntRect(offset = topLeft, size = size)
 
-        println(
-            "🚀ScalableImage() imageScale: $imageScale\n" +
-                    "constraints: $constraints\n" +
-                    "hasBoundedDimens: $hasBoundedDimens, hasFixedDimens: $hasFixedDimens\n" +
-                    "bitmapWidth: $bitmapWidth, bitmapHeight: $bitmapHeight, " +
-                    "boxWidth: $boxWidth, boxHeight: $boxHeight\n" +
-                    "scaleX: ${scaleFactor.x}, scaleY: ${scaleFactor.x}\n" +
-                    "imageWidth: $imageWidth, imageHeight: $imageHeight\n" +
-                    "scaledImageRect: $scaledImageRect\n" +
-                    "scaledBitmapX: $scaledBitmapX, scaledBitmapY: $scaledBitmapY\n\n"
-        )
-
-        val density = LocalDensity.current
-
-        // Dimensions of canvas that will draw this Bitmap
-        val canvasWidthInDp: Dp
-        val canvasHeightInDp: Dp
-
-        with(density) {
-            canvasWidthInDp = bitmapWidth * scaleFactor.x.toDp()
-            canvasHeightInDp = bitmapHeight * scaleFactor.y.toDp()
-        }
-
-        val imageScopeImpl = remember(key1 = constraints) {
-            ImageScopeImpl(
-                density = density,
-                constraints = constraints,
-                imageWidth = canvasWidthInDp,
-                imageHeight = canvasHeightInDp,
-                rect = scaledImageRect
-            )
-        }
-
-        ScalableImageImpl(
-            modifier = Modifier.size(canvasWidthInDp, canvasHeightInDp),
+        ImageLayout(
+            constraints = constraints,
             bitmap = bitmap,
+            scaleFactor = scaleFactor,
+            scaledImageRect = scaledImageRect,
+            imageWidth = imageWidth,
+            imageHeight = imageHeight,
             alpha = alpha,
-            width = imageWidth.toInt(),
-            height = imageHeight.toInt(),
             colorFilter = colorFilter,
-            filterQuality = filterQuality
+            filterQuality = filterQuality,
+            content = content
         )
-
-        imageScopeImpl.content()
     }
 }
 
 @Composable
+private fun ImageLayout(
+    constraints: Constraints,
+    bitmap: ImageBitmap,
+    scaleFactor: ScaleFactor,
+    scaledImageRect: IntRect,
+    imageWidth: Float,
+    imageHeight: Float,
+    alpha: Float = DefaultAlpha,
+    colorFilter: ColorFilter? = null,
+    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
+    content: @Composable ScalableImageScope.() -> Unit
+) {
+    val density = LocalDensity.current
+    val bitmapWidth = bitmap.width
+    val bitmapHeight = bitmap.height
+
+    // Dimensions of canvas that will draw this Bitmap
+    val canvasWidthInDp: Dp
+    val canvasHeightInDp: Dp
+
+    with(density) {
+        canvasWidthInDp = bitmapWidth * scaleFactor.x.toDp()
+        canvasHeightInDp = bitmapHeight * scaleFactor.y.toDp()
+    }
+
+    val imageScopeImpl = remember(key1 = constraints) {
+        ImageScopeImpl(
+            density = density,
+            constraints = constraints,
+            imageWidth = canvasWidthInDp,
+            imageHeight = canvasHeightInDp,
+            rect = scaledImageRect
+        )
+    }
+
+    ScalableImageImpl(
+        modifier = Modifier.size(canvasWidthInDp, canvasHeightInDp),
+        bitmap = bitmap,
+        alpha = alpha,
+        width = imageWidth.toInt(),
+        height = imageHeight.toInt(),
+        colorFilter = colorFilter,
+        filterQuality = filterQuality
+    )
+
+    imageScopeImpl.content()
+}
+
 private fun calculateScaleFactor(
     imageScale: ImageScale,
     srcSize: Size,
@@ -259,17 +229,13 @@ private fun ScalableImageImpl(
     val bitmapWidth = bitmap.width
     val bitmapHeight = bitmap.height
 
-    Canvas(
-        modifier = modifier
-            .clipToBounds()
-            .border(4.dp, Color.Yellow)
-    ) {
+    Canvas(modifier = modifier.clipToBounds()) {
 
         val canvasWidth = size.width.toInt()
         val canvasHeight = size.height.toInt()
 
-        println("💬 CANVAS size: $size, width: $width, height: $height")
-
+        // Translate to left or down when Image size is bigger than this canvas.
+        // ImageSize is bigger when scale mode like Crop is used
         translate(
             top = (-height + canvasHeight) / 2f,
             left = (-width + canvasWidth) / 2f,
