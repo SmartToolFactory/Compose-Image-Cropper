@@ -35,8 +35,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                    Column(modifier=Modifier.fillMaxSize()) {
-//                       HomeContent()
-                       ThumbnailDemo()
+                       HomeContent()
+//                       ThumbnailDemo()
 //                       ImageScaleDemo()
                    }
                 }

@@ -2,6 +2,7 @@ package com.smarttoolfactory.imagecropper
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -13,6 +14,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -20,22 +22,19 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.*
 
-enum class ImageScale {
-    Fit, FillBounds, Crop
-}
 
 /**
  * A composable that lays out and draws a given [ImageBitmap]. This will attempt to
  * size the composable according to the [ImageBitmap]'s given width and height.
  *
- * * [ScalableImageScope] contains [Constraints] since [ScalableImage] uses [BoxWithConstraints]
+ * * [ImageScope] contains [Constraints] since [ImageWithConstraints] uses [BoxWithConstraints]
  * also it contains information about canvas width, height and top left position relative
  * to parent [BoxWithConstraints].
  *
  * @param alignment determines where image will be aligned inside [BoxWithConstraints]
  * This is observable when bitmap image/width ratio differs from [Canvas] that draws [ImageBitmap]
  * @param contentDescription
- * @param imageScale how image should be scaled inside Canvas to match parent dimensions.
+ * @param contentScale how image should be scaled inside Canvas to match parent dimensions.
  * [ImageScale.Fit] for instance maintains src ratio and scales image to fit inside the parent.
  * @param alpha Opacity to be applied to [bitmap] from 0.0f to 1.0f representing
  * fully transparent to fully opaque respectively
@@ -48,16 +47,16 @@ enum class ImageScale {
  * with the image that is scaled is drawn
  */
 @Composable
-fun ScalableImage(
+fun ImageWithConstraints(
     modifier: Modifier = Modifier,
     bitmap: ImageBitmap,
     alignment: Alignment = Alignment.Center,
-    imageScale: ImageScale = ImageScale.Fit,
+    contentScale: ContentScale = ContentScale.Fit,
     contentDescription: String? = null,
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
-    content: @Composable ScalableImageScope.() -> Unit = {}
+    content: @Composable ImageScope.() -> Unit = {}
 ) {
 
     val semantics = if (contentDescription != null) {
@@ -78,35 +77,18 @@ fun ScalableImage(
         val bitmapWidth = bitmap.width
         val bitmapHeight = bitmap.height
 
-        // Check if Composable has fixed size dimensions
-        val hasBoundedDimens = constraints.hasBoundedWidth && constraints.hasBoundedHeight
-        // Check if Composable has infinite dimensions
-        val hasFixedDimens = constraints.hasFixedWidth && constraints.hasFixedHeight
-
-        // Box is the parent(BoxWithConstraints) that contains Canvas under the hood
-        // Canvas aspect ratio or size might not match parent but it's upper bounds are
-        // what are passed from parent. Canvas cannot be bigger or taller than BoxWithConstraints
-        val boxWidth: Int = if (hasBoundedDimens || hasFixedDimens) {
-            constraints.maxWidth
-        } else {
-            constraints.minWidth.coerceAtLeast(bitmapWidth)
-        }
-        val boxHeight: Int = if (hasBoundedDimens || hasFixedDimens) {
-            constraints.maxHeight
-        } else {
-            constraints.minHeight.coerceAtLeast(bitmapHeight)
-        }
+        val (boxWidth: Int, boxHeight: Int) = getParentSize(bitmapWidth, bitmapHeight)
 
         // Src is Bitmap, Dst is the container(Image) that Bitmap will be displayed
         val srcSize = Size(bitmapWidth.toFloat(), bitmapHeight.toFloat())
         val dstSize = Size(boxWidth.toFloat(), boxHeight.toFloat())
 
-        val scaleFactor = calculateScaleFactor(imageScale, srcSize, dstSize)
+        val scaleFactor = contentScale.computeScaleFactor(srcSize, dstSize)
 
         // Image is the container for bitmap that is located inside Box
         // image bounds can be smaller or bigger than its parent based on how it's scaled
-        val imageWidth = bitmapWidth * scaleFactor.x
-        val imageHeight = bitmapHeight * scaleFactor.y
+        val imageWidth = bitmapWidth * scaleFactor.scaleX
+        val imageHeight = bitmapHeight * scaleFactor.scaleY
 
         // Get scale of box to width of the image, image
         // We need a rect that contains Bitmap bounds to pass if any child requires it
@@ -132,7 +114,8 @@ fun ScalableImage(
         ImageLayout(
             constraints = constraints,
             bitmap = bitmap,
-            scaleFactor = scaleFactor,
+            scaleX = scaleFactor.scaleX,
+            scaleY = scaleFactor.scaleY,
             scaledImageRect = scaledImageRect,
             imageWidth = imageWidth,
             imageHeight = imageHeight,
@@ -145,17 +128,44 @@ fun ScalableImage(
 }
 
 @Composable
+private fun BoxWithConstraintsScope.getParentSize(
+    bitmapWidth: Int,
+    bitmapHeight: Int
+): IntSize {
+    // Check if Composable has fixed size dimensions
+    val hasBoundedDimens = constraints.hasBoundedWidth && constraints.hasBoundedHeight
+    // Check if Composable has infinite dimensions
+    val hasFixedDimens = constraints.hasFixedWidth && constraints.hasFixedHeight
+
+    // Box is the parent(BoxWithConstraints) that contains Canvas under the hood
+    // Canvas aspect ratio or size might not match parent but it's upper bounds are
+    // what are passed from parent. Canvas cannot be bigger or taller than BoxWithConstraints
+    val boxWidth: Int = if (hasBoundedDimens || hasFixedDimens) {
+        constraints.maxWidth
+    } else {
+        constraints.minWidth.coerceAtLeast(bitmapWidth)
+    }
+    val boxHeight: Int = if (hasBoundedDimens || hasFixedDimens) {
+        constraints.maxHeight
+    } else {
+        constraints.minHeight.coerceAtLeast(bitmapHeight)
+    }
+    return IntSize(boxWidth, boxHeight)
+}
+
+@Composable
 private fun ImageLayout(
     constraints: Constraints,
     bitmap: ImageBitmap,
-    scaleFactor: ScaleFactor,
+    scaleX: Float,
+    scaleY: Float,
     scaledImageRect: IntRect,
     imageWidth: Float,
     imageHeight: Float,
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
-    content: @Composable ScalableImageScope.() -> Unit
+    content: @Composable ImageScope.() -> Unit
 ) {
     val density = LocalDensity.current
     val bitmapWidth = bitmap.width
@@ -166,12 +176,12 @@ private fun ImageLayout(
     val canvasHeightInDp: Dp
 
     with(density) {
-        canvasWidthInDp = bitmapWidth * scaleFactor.x.toDp()
-        canvasHeightInDp = bitmapHeight * scaleFactor.y.toDp()
+        canvasWidthInDp = bitmapWidth * scaleX.toDp()
+        canvasHeightInDp = bitmapHeight * scaleY.toDp()
     }
 
     val imageScopeImpl = remember(key1 = constraints) {
-        ImageScopeImpl(
+        ImagesScopeImpl(
             density = density,
             constraints = constraints,
             imageWidth = canvasWidthInDp,
@@ -180,7 +190,7 @@ private fun ImageLayout(
         )
     }
 
-    ScalableImageImpl(
+    ImageImpl(
         modifier = Modifier.size(canvasWidthInDp, canvasHeightInDp),
         bitmap = bitmap,
         alpha = alpha,
@@ -193,31 +203,9 @@ private fun ImageLayout(
     imageScopeImpl.content()
 }
 
-private fun calculateScaleFactor(
-    imageScale: ImageScale,
-    srcSize: Size,
-    dstSize: Size
-) = when (imageScale) {
-    ImageScale.FillBounds -> {
-        ScaleFactor(
-            computeFillWidth(srcSize, dstSize),
-            computeFillHeight(srcSize, dstSize)
-        )
-    }
-    ImageScale.Fit -> {
-        computeFillMinDimension(srcSize, dstSize).let {
-            ScaleFactor(it, it)
-        }
-    }
-    ImageScale.Crop -> {
-        computeFillMaxDimension(srcSize, dstSize).let {
-            ScaleFactor(it, it)
-        }
-    }
-}
 
 @Composable
-private fun ScalableImageImpl(
+private fun ImageImpl(
     modifier: Modifier,
     bitmap: ImageBitmap,
     width: Int,
@@ -253,32 +241,12 @@ private fun ScalableImageImpl(
     }
 }
 
-data class ScaleFactor(val x: Float, val y: Float)
-
-private fun computeFillMaxDimension(srcSize: Size, dstSize: Size): Float {
-    val widthScale = computeFillWidth(srcSize, dstSize)
-    val heightScale = computeFillHeight(srcSize, dstSize)
-    return kotlin.math.max(widthScale, heightScale)
-}
-
-private fun computeFillMinDimension(srcSize: Size, dstSize: Size): Float {
-    val widthScale = computeFillWidth(srcSize, dstSize)
-    val heightScale = computeFillHeight(srcSize, dstSize)
-    return kotlin.math.min(widthScale, heightScale)
-}
-
-private fun computeFillWidth(srcSize: Size, dstSize: Size): Float =
-    dstSize.width / srcSize.width
-
-private fun computeFillHeight(srcSize: Size, dstSize: Size): Float =
-    dstSize.height / srcSize.height
-
 
 /**
- * Receiver scope being used by the children parameter of [ScalableImage]
+ * Receiver scope being used by the children parameter of [ImageWithConstraints]
  */
 @Stable
-interface ScalableImageScope {
+interface ImageScope {
     /**
      * The constraints given by the parent layout in pixels.
      *
@@ -315,12 +283,12 @@ interface ScalableImageScope {
     val maxHeight: Dp
 
     /**
-     * Width of Image that is scaled based on [ImageScale]
+     * Width of Image that is scaled based on [ContentScale]
      */
     val imageWidth: Dp
 
     /**
-     * Height of Image that is scaled based on [ImageScale]
+     * Height of Image that is scaled based on [ContentScale]
      */
     val imageHeight: Dp
 
@@ -330,13 +298,13 @@ interface ScalableImageScope {
     val rect: IntRect
 }
 
-private data class ImageScopeImpl(
+private data class ImagesScopeImpl(
     private val density: Density,
     override val constraints: Constraints,
     override val imageWidth: Dp,
     override val imageHeight: Dp,
     override val rect: IntRect,
-) : ScalableImageScope {
+) : ImageScope {
 
     override val minWidth: Dp get() = with(density) { constraints.minWidth.toDp() }
 

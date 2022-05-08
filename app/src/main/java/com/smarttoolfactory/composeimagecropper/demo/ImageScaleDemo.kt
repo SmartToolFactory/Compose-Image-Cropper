@@ -15,10 +15,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smarttoolfactory.composeimagecropper.R
-import com.smarttoolfactory.imagecropper.ImageScale
-import com.smarttoolfactory.imagecropper.ScalableImage
+import com.smarttoolfactory.imagecropper.ImageWithConstraints
 
-
+/**
+ * This demo is for comparing results with [Image] and [ImageWithConstraints]
+ */
 @Composable
 fun ImageScaleDemo() {
 
@@ -27,58 +28,151 @@ fun ImageScaleDemo() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-
-
         val density = LocalDensity.current.density
 
         val modifier = Modifier
             .background(Color.LightGray)
-//        .clipToBounds()
             .border(2.dp, Color.Red)
-//            .size(300.dp, 500.dp)
-            .size((1000/density).dp, height = (600/density).dp)
-//            .fillMaxWidth()
-//            .aspectRatio(3/4f)
+            .size((800 / density).dp, height = (300 / density).dp)
+
 
         val imageBitmapLarge = ImageBitmap.imageResource(
             LocalContext.current.resources,
-            R.drawable.rome
+            R.drawable.landscape1
         )
 
         val imageBitmapSmall = ImageBitmap.imageResource(
             LocalContext.current.resources,
-            R.drawable.landscape10
+            R.drawable.landscape2
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(text = "ScalableImage ImageScale.FillBounds")
-        ScalableImage(
-            modifier = modifier,
-            bitmap = imageBitmapLarge,
-            imageScale = ImageScale.FillBounds,
-            contentDescription = null
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(text = "ScalableImage ImageScale.Fit")
-        ScalableImage(
-            modifier = modifier,
-            bitmap = imageBitmapLarge,
-            imageScale = ImageScale.Fit,
-            contentDescription = null
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(text = "ScalableImage ImageScale.Crop")
-        ScalableImage(
-            modifier = modifier,
-            bitmap = imageBitmapLarge,
-            imageScale = ImageScale.Crop,
-            contentDescription = null
-        )
-
-
+        Spacer(modifier = Modifier.height(20.dp))
+        ImageWitConstraintsSamples(modifier = modifier, imageBitmap = imageBitmapLarge)
         ImageSamples(modifier = modifier, imageBitmap = imageBitmapLarge)
+    }
+}
+
+@Composable
+private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
+
+    Text(
+        text = "Default Content Scale",
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.Red,
+        modifier = Modifier.padding(8.dp)
+    )
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.None")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.None
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.Fit")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.Fit
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.Crop")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.Crop
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.FillBounds")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.FillWidth")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.FillWidth
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.FillHeight")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.FillHeight
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(text = "ImageWithConstraints ContentScale.Inside")
+    ImageWithConstraints(
+        modifier = modifier,
+        bitmap = imageBitmap,
+        contentDescription = null,
+        contentScale = ContentScale.Inside
+    ) {
+        Spacer(
+            modifier = Modifier
+                .size(this.imageWidth, this.imageHeight)
+                .border(2.dp, Color.Yellow)
+        )
     }
 }
 
@@ -95,7 +189,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         modifier = Modifier.padding(8.dp)
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.None")
     Image(
         modifier = modifier,
@@ -104,7 +199,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         contentScale = ContentScale.None
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.Fit")
     Image(
         modifier = modifier,
@@ -113,7 +209,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         contentScale = ContentScale.Fit
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.Crop")
     Image(
         modifier = modifier,
@@ -122,7 +219,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         contentScale = ContentScale.Crop
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.FillBounds")
     Image(
         modifier = modifier,
@@ -131,7 +229,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         contentScale = ContentScale.FillBounds
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.FillWidth")
     Image(
         modifier = modifier,
@@ -140,7 +239,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         contentScale = ContentScale.FillWidth
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.FillHeight")
     Image(
         modifier = modifier,
@@ -149,7 +249,8 @@ private fun ImageSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
         contentScale = ContentScale.FillHeight
     )
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+
     Text(text = "IMAGE ContentScale.Inside")
     Image(
         modifier = modifier,

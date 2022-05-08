@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.consumeDownChange
 import androidx.compose.ui.input.pointer.consumePositionChange
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -32,7 +33,7 @@ import kotlin.math.sqrt
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
  * @param bitmap The [ImageBitmap] to draw
- * @param imageScale Optional scale parameter used to determine the aspect ratio scaling to be used
+ * @param contentScale Optional scale parameter used to determine the aspect ratio scaling to be used
  * if the bounds are a different size from the intrinsic size of the [ImageBitmap]
  * @param alignment Optional alignment parameter used to place the [ImageBitmap] in the given
  * bounds defined by the width and height
@@ -63,7 +64,7 @@ import kotlin.math.sqrt
 fun ImageWithThumbnail(
     modifier: Modifier = Modifier,
     bitmap: ImageBitmap,
-    imageScale: ImageScale = ImageScale.Fit,
+    contentScale: ContentScale = ContentScale.Fit,
     alignment: Alignment = Alignment.Center,
     contentDescription: String?,
     thumbnailSize: Dp = 80.dp,
@@ -79,9 +80,9 @@ fun ImageWithThumbnail(
     content: @Composable () -> Unit = {}
 ) {
 
-    ScalableImage(
+    ImageWithConstraints(
         modifier = modifier,
-        imageScale = imageScale,
+        contentScale = contentScale,
         alignment = alignment,
         contentDescription = contentDescription,
         alpha = alpha,
