@@ -7,19 +7,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
+import com.smarttoolfactory.composeimagecropper.demo.CanvasDemo
 import com.smarttoolfactory.composeimagecropper.demo.ImageScaleDemo
 import com.smarttoolfactory.composeimagecropper.demo.ThumbnailDemo
 import com.smarttoolfactory.composeimagecropper.ui.theme.ComposeImageCropperTheme
@@ -34,11 +33,9 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     color = MaterialTheme.colors.background
                 ) {
-                   Column(modifier=Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
                        HomeContent()
-//                       ThumbnailDemo()
-//                       ImageScaleDemo()
-                   }
+                    }
                 }
             }
         }
@@ -85,7 +82,8 @@ private fun HomeContent() {
         when (page) {
 
             0 -> ImageScaleDemo()
-            else -> ThumbnailDemo()
+            1 -> ThumbnailDemo()
+            else -> CanvasDemo()
         }
     }
 }
@@ -94,4 +92,5 @@ internal val tabList =
     listOf(
         "Images Scaling",
         "Image Thumbnail",
+        "Native and Compose Canvas",
     )
