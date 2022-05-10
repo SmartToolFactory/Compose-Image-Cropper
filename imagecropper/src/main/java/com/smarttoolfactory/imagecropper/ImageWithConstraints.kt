@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.*
  * This is observable when bitmap image/width ratio differs from [Canvas] that draws [ImageBitmap]
  * @param contentDescription
  * @param contentScale how image should be scaled inside Canvas to match parent dimensions.
- * [ImageScale.Fit] for instance maintains src ratio and scales image to fit inside the parent.
+ * [ContentScale.Fit] for instance maintains src ratio and scales image to fit inside the parent.
  * @param alpha Opacity to be applied to [bitmap] from 0.0f to 1.0f representing
  * fully transparent to fully opaque respectively
  * @param colorFilter ColorFilter to apply to the [bitmap] when drawn into the destination
@@ -45,6 +45,10 @@ import androidx.compose.ui.unit.*
  * @param content is a Composable that can be matched at exact position where [bitmap] is drawn.
  * This is useful for drawing thumbs, cropping or another layout that should match position
  * with the image that is scaled is drawn
+ * @param drawImage flag to draw image on canvas. Some Composables might only require
+ * the calculation and rectangle bounds of image after scaling but not drawing.
+ * Composables like image cropper that scales or
+ * rotates image. Drawing here again have 2 drawings overlap each other.
  */
 @Composable
 fun ImageWithConstraints(
@@ -56,6 +60,7 @@ fun ImageWithConstraints(
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
+    drawImage: Boolean = true,
     content: @Composable ImageScope.() -> Unit = {}
 ) {
 
@@ -122,6 +127,7 @@ fun ImageWithConstraints(
             alpha = alpha,
             colorFilter = colorFilter,
             filterQuality = filterQuality,
+            drawImage = drawImage,
             content = content
         )
     }
@@ -165,6 +171,7 @@ private fun ImageLayout(
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
+    drawImage: Boolean = true,
     content: @Composable ImageScope.() -> Unit
 ) {
     val density = LocalDensity.current
@@ -181,7 +188,7 @@ private fun ImageLayout(
     }
 
     val imageScopeImpl = remember(key1 = constraints) {
-        ImagesScopeImpl(
+        ImageScopeImpl(
             density = density,
             constraints = constraints,
             imageWidth = canvasWidthInDp,
@@ -190,15 +197,17 @@ private fun ImageLayout(
         )
     }
 
-    ImageImpl(
-        modifier = Modifier.size(canvasWidthInDp, canvasHeightInDp),
-        bitmap = bitmap,
-        alpha = alpha,
-        width = imageWidth.toInt(),
-        height = imageHeight.toInt(),
-        colorFilter = colorFilter,
-        filterQuality = filterQuality
-    )
+    if (drawImage) {
+        ImageImpl(
+            modifier = Modifier.size(canvasWidthInDp, canvasHeightInDp),
+            bitmap = bitmap,
+            alpha = alpha,
+            width = imageWidth.toInt(),
+            height = imageHeight.toInt(),
+            colorFilter = colorFilter,
+            filterQuality = filterQuality
+        )
+    }
 
     imageScopeImpl.content()
 }
@@ -213,7 +222,7 @@ private fun ImageImpl(
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
-) {
+    ) {
     val bitmapWidth = bitmap.width
     val bitmapHeight = bitmap.height
 
@@ -240,7 +249,6 @@ private fun ImageImpl(
         }
     }
 }
-
 
 /**
  * Receiver scope being used by the children parameter of [ImageWithConstraints]
@@ -298,7 +306,7 @@ interface ImageScope {
     val rect: IntRect
 }
 
-private data class ImagesScopeImpl(
+private data class ImageScopeImpl(
     private val density: Density,
     override val constraints: Constraints,
     override val imageWidth: Dp,
