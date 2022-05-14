@@ -8,6 +8,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,30 +25,58 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.smarttoolfactory.composeimagecropper.ImageSelectionButton
 import com.smarttoolfactory.composeimagecropper.R
 import com.smarttoolfactory.imagecropper.ImageWithThumbnail
 import com.smarttoolfactory.imagecropper.ThumbnailPosition
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThumbnailDemo() {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-    ) {
+    val imageBitmapLarge = ImageBitmap.imageResource(
+        LocalContext.current.resources,
+        R.drawable.landscape1
+    )
 
-        val modifier = Modifier
-            .background(Color.LightGray)
-            .border(2.dp, Color.Red)
-            .fillMaxWidth()
-            .aspectRatio(4 / 3f)
+    var imageBitmap by remember { mutableStateOf(imageBitmapLarge) }
 
-        Spacer(modifier = Modifier.height(20.dp))
-        ThumbnailScaleModeSample()
-        ThumbnailPositionChangeSample(modifier)
-        ThumbnailCallbackSample()
-    }
+    Scaffold(
+        floatingActionButton = {
+            ImageSelectionButton {
+                imageBitmap = it
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        content = { paddingValues: PaddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(10.dp)
+            ) {
+
+                ThumbnailDemoSamples()
+            }
+        }
+    )
+}
+
+@Composable
+private fun ThumbnailDemoSamples() {
+
+    val modifier = Modifier
+        .background(Color.LightGray)
+        .border(2.dp, Color.Red)
+        .fillMaxWidth()
+        .aspectRatio(4 / 3f)
+
+    Spacer(modifier = Modifier.height(20.dp))
+    ThumbnailScaleModeSample()
+    ThumbnailPositionChangeSample(modifier)
+    ThumbnailCallbackSample()
+
 }
 
 @Composable

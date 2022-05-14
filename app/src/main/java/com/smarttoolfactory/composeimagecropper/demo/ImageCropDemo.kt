@@ -1,7 +1,6 @@
 package com.smarttoolfactory.composeimagecropper.demo
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.unit.dp
 import com.smarttoolfactory.composeimagecropper.R
 import com.smarttoolfactory.imagecropper.ImageCropper
 

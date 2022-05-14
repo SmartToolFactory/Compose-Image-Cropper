@@ -52,7 +52,7 @@ private fun HomeContent() {
     val coroutineScope = rememberCoroutineScope()
 
     ScrollableTabRow(
-        backgroundColor = Color(0xff03a9f4),
+        backgroundColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
         contentColor = Color.White,
         edgePadding = 8.dp,
         // Our selected tab is our current page
