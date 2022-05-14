@@ -115,7 +115,7 @@ private fun ThumbnailScaleModeCustomImageSample(imageBitmap: ImageBitmap) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(it)
+                    .size(imageWidth, imageHeight)
                     .border(4.dp, Color.Yellow)
             )
         }

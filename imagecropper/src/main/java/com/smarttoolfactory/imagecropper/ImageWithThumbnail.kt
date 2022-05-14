@@ -19,7 +19,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.consumeDownChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.smarttoolfactory.gesture.pointerMotionEvents
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -75,7 +78,7 @@ fun ImageWithThumbnail(
     onTouchEvent: ((Offset) -> Unit)? = null,
     onThumbnailCenterChange: ((Offset) -> Unit)? = null,
     drawImage: Boolean = true,
-    content: @Composable (DpSize) -> Unit = {}
+    content: @Composable ImageScope.() -> Unit = {}
 ) {
 
     ImageWithConstraints(
@@ -90,6 +93,7 @@ fun ImageWithThumbnail(
         drawImage = drawImage
     ) {
 
+        val imageScope = this
 
         val scaledBitmap =
             remember(bitmap, rect, imageWidth, imageHeight, contentScale) {
@@ -125,7 +129,7 @@ fun ImageWithThumbnail(
             modifier = Modifier
                 .size(this.imageWidth, this.imageHeight),
         ) {
-            content(DpSize(imageWidth, imageHeight))
+            imageScope.content()
         }
     }
 

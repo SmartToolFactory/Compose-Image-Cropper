@@ -44,7 +44,7 @@ fun ImageCropper(
         alpha = alpha,
         colorFilter = colorFilter,
         filterQuality = filterQuality,
-        bitmap = bitmap,
+        imageBitmap = bitmap,
         drawImage = false
     ) {
 
