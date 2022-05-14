@@ -25,7 +25,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
- * [ScalableImage] with [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
+ * [ImageWithConstraints] with [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
  * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
@@ -74,6 +74,7 @@ fun ImageWithThumbnail(
     @IntRange(from = 100, to = 500) thumbnailZoom: Int = 200,
     onTouchEvent: ((Offset) -> Unit)? = null,
     onThumbnailCenterChange: ((Offset) -> Unit)? = null,
+    drawImage: Boolean = true,
     content: @Composable (DpSize) -> Unit = {}
 ) {
 
@@ -85,39 +86,32 @@ fun ImageWithThumbnail(
         alpha = alpha,
         colorFilter = colorFilter,
         filterQuality = filterQuality,
-        bitmap = bitmap,
+        imageBitmap = bitmap,
+        drawImage = drawImage
     ) {
 
-        // No crop operation is applied by ScalableImage so rect points to bounds of original
-        // bitmap
+
         val scaledBitmap =
-            if (bitmap.width == rect.width &&
-                bitmap.height == rect.height &&
-                !bitmap.asAndroidBitmap().isRecycled
-            ) {
-                bitmap
-            } else {
-                remember(this) {
-                    // This bitmap is needed when we crop original bitmap due to scaling mode
-                    // and aspect ratio result of cropping
-                    // We might have center section of the image after cropping, and
-                    // because of that thumbLayout either should have rectangle and some
-                    // complex calculation for srcOffset and srcSide along side with touch offset
-                    // or we can create a new bitmap that only contains area bounded by rectangle
-                    Bitmap.createBitmap(
-                        bitmap.asAndroidBitmap(),
-                        rect.left,
-                        rect.top,
-                        rect.width,
-                        rect.height
-                    ).asImageBitmap()
-                }
+            remember(bitmap, rect, imageWidth, imageHeight, contentScale) {
+                // This bitmap is needed when we crop original bitmap due to scaling mode
+                // and aspect ratio result of cropping
+                // We might have center section of the image after cropping, and
+                // because of that thumbLayout either should have rectangle and some
+                // complex calculation for srcOffset and srcSide along side with touch offset
+                // or we can create a new bitmap that only contains area bounded by rectangle
+                Bitmap.createBitmap(
+                    bitmap.asAndroidBitmap(),
+                    rect.left,
+                    rect.top,
+                    rect.width,
+                    rect.height
+                ).asImageBitmap()
             }
 
         ThumbnailLayout(
             modifier = Modifier
                 .size(this.imageWidth, this.imageHeight),
-            bitmap = scaledBitmap,
+            imageBitmap = scaledBitmap,
             thumbnailSize = thumbnailSize,
             thumbnailZoom = thumbnailZoom,
             thumbnailPosition = thumbnailPosition,
@@ -134,6 +128,7 @@ fun ImageWithThumbnail(
             content(DpSize(imageWidth, imageHeight))
         }
     }
+
 }
 
 /**
@@ -141,7 +136,7 @@ fun ImageWithThumbnail(
  * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
- * @param bitmap The [ImageBitmap] to draw
+ * @param imageBitmap The [ImageBitmap] to draw
  * into the destination. The default is [FilterQuality.Low] which scales using a bilinear
  * sampling algorithm
  * @param thumbnailSize size of the thumbnail
@@ -157,7 +152,7 @@ fun ImageWithThumbnail(
 @Composable
 fun ThumbnailLayout(
     modifier: Modifier,
-    bitmap: ImageBitmap,
+    imageBitmap: ImageBitmap,
     thumbnailSize: Dp = 80.dp,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
     moveableThumbnail: Boolean = true,
@@ -168,7 +163,7 @@ fun ThumbnailLayout(
 ) {
     ThumbnailLayoutImpl(
         modifier = modifier,
-        bitmap = bitmap,
+        imageBitmap = imageBitmap,
         thumbnailSize = thumbnailSize,
         thumbnailZoom = thumbnailZoom,
         thumbnailPosition = thumbnailPosition,
@@ -184,7 +179,7 @@ fun ThumbnailLayout(
  * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
- * @param bitmap The [ImageBitmap] to draw
+ * @param imageBitmap The [ImageBitmap] to draw
  * into the destination. The default is [FilterQuality.Low] which scales using a bilinear
  * sampling algorithm
  * @param thumbnailSize size of the thumbnail
@@ -202,7 +197,7 @@ fun ThumbnailLayout(
 @Composable
 fun ThumbnailLayout(
     modifier: Modifier,
-    bitmap: ImageBitmap,
+    imageBitmap: ImageBitmap,
     thumbnailSize: Dp,
     @IntRange(from = 100, to = 500) thumbnailZoom: Int = 200,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
@@ -248,7 +243,7 @@ fun ThumbnailLayout(
 
         ThumbnailLayoutImpl(
             modifier = thumbnailModifier.fillMaxSize(),
-            bitmap = bitmap,
+            imageBitmap = imageBitmap,
             thumbnailSize = thumbnailSize,
             thumbnailZoom = thumbnailZoom,
             thumbnailPosition = thumbnailPosition,
@@ -263,7 +258,7 @@ fun ThumbnailLayout(
 @Composable
 private fun ThumbnailLayoutImpl(
     modifier: Modifier,
-    bitmap: ImageBitmap,
+    imageBitmap: ImageBitmap,
     thumbnailSize: Dp,
     thumbnailZoom: Int = 200,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
@@ -303,14 +298,14 @@ private fun ThumbnailLayoutImpl(
 
         val srcOffset = getSrcOffset(
             offset = offset,
-            bitmap = bitmap,
+            imageBitmap = imageBitmap,
             zoomScale = zoomScale,
             size = size,
             imageThumbnailSize = imageThumbnailSize
         )
 
         drawImage(
-            image = bitmap,
+            image = imageBitmap,
             srcOffset = srcOffset,
             srcSize = IntSize(
                 width = (imageThumbnailSize / zoomScale).toInt(),
@@ -395,12 +390,12 @@ private fun calculateThumbnailOffset(
  * size and offset any section or whole bitmap can be drawn.
  * Setting positive offset on x axis moves visible section of bitmap to the left.
  * @param offset pointer touch position
- * @param bitmap is image that will be drawn
+ * @param imageBitmap is image that will be drawn
  * @param zoomScale scale of zoom between [1]
  */
 private fun getSrcOffset(
     offset: Offset,
-    bitmap: ImageBitmap,
+    imageBitmap: ImageBitmap,
     zoomScale: Float,
     size: Size,
     imageThumbnailSize: Int
@@ -409,8 +404,8 @@ private fun getSrcOffset(
     val canvasWidth = size.width
     val canvasHeight = size.height
 
-    val bitmapWidth = bitmap.width
-    val bitmapHeight = bitmap.height
+    val bitmapWidth = imageBitmap.width
+    val bitmapHeight = imageBitmap.height
 
     val offsetX = offset.x
         .coerceIn(0f, canvasWidth)
