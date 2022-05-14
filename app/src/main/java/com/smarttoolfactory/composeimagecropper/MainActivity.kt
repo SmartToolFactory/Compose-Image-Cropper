@@ -43,7 +43,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @ExperimentalPagerApi
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun HomeContent() {
 

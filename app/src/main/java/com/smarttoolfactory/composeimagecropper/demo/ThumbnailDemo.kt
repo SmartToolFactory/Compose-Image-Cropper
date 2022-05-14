@@ -25,6 +25,7 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.smarttoolfactory.composeimagecropper.ContentScaleSelectionMenu
 import com.smarttoolfactory.composeimagecropper.ImageSelectionButton
 import com.smarttoolfactory.composeimagecropper.R
 import com.smarttoolfactory.imagecropper.ImageWithThumbnail
@@ -36,7 +37,7 @@ fun ThumbnailDemo() {
 
     val imageBitmapLarge = ImageBitmap.imageResource(
         LocalContext.current.resources,
-        R.drawable.landscape1
+        R.drawable.landscape2
     )
 
     var imageBitmap by remember { mutableStateOf(imageBitmapLarge) }
@@ -57,14 +58,14 @@ fun ThumbnailDemo() {
                     .padding(10.dp)
             ) {
 
-                ThumbnailDemoSamples()
+                ThumbnailDemoSamples(imageBitmap)
             }
         }
     )
 }
 
 @Composable
-private fun ThumbnailDemoSamples() {
+private fun ThumbnailDemoSamples(imageBitmap: ImageBitmap) {
 
     val modifier = Modifier
         .background(Color.LightGray)
@@ -73,10 +74,52 @@ private fun ThumbnailDemoSamples() {
         .aspectRatio(4 / 3f)
 
     Spacer(modifier = Modifier.height(20.dp))
+    ThumbnailScaleModeCustomImageSample(imageBitmap)
     ThumbnailScaleModeSample()
     ThumbnailPositionChangeSample(modifier)
     ThumbnailCallbackSample()
 
+}
+
+@Composable
+private fun ThumbnailScaleModeCustomImageSample(imageBitmap: ImageBitmap) {
+
+    ExpandableColumnWithTitle(
+        title = "Custom Image",
+        color = Color.Red,
+        initialExpandState = true
+    ) {
+
+        Text(
+            "Open an image using FloatingActionButton or change ContentScale " +
+                    "using dropdown menu."
+        )
+
+        val modifier = Modifier
+            .background(Color.LightGray)
+            .border(2.dp, Color.Red)
+            .fillMaxWidth()
+            .aspectRatio(4 / 3f)
+
+        var contentScale by remember { mutableStateOf(ContentScale.Fit) }
+        ContentScaleSelectionMenu(contentScale = contentScale) {
+            contentScale = it
+        }
+
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            contentScale = contentScale,
+            thumbnailZoom = 100,
+            contentDescription = null
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(it)
+                    .border(4.dp, Color.Yellow)
+            )
+        }
+    }
 }
 
 @Composable
@@ -105,173 +148,172 @@ private fun ThumbnailScaleModeSample() {
     ExpandableColumnWithTitle(
         title = "Content Scale",
         color = Color.Red,
-        initialExpandState = true
+        initialExpandState = false
     ) {
-        Column {
 
-            Text(
-                "Demonstrates correct positions are returned even if image is " +
-                        "scaled with ContentScale modes"
-            )
+        Text(
+            "Demonstrates correct positions are returned even if image is " +
+                    "scaled with ContentScale modes"
+        )
 
-            // Bitmap1 1920x1280
-            Text(text = "ContentScale.None")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.None,
-                contentDescription = null
-            )
+        // Bitmap1 1920x1280
+        Text(text = "ContentScale.None")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.None,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Fit")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.Fit,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Fit")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.Fit,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Crop")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.Crop,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Crop")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillBounds")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.FillBounds,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillBounds")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.FillBounds,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillWidth")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.FillWidth,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillWidth")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.FillWidth,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillHeight")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.FillHeight,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillHeight")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.FillHeight,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Inside")
-            ImageWithThumbnail(
-                bitmap = bitmap1,
-                modifier = modifier,
-                contentScale = ContentScale.Inside,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Inside")
+        ImageWithThumbnail(
+            bitmap = bitmap1,
+            modifier = modifier,
+            contentScale = ContentScale.Inside,
+            contentDescription = null
+        )
 
-            // Bitmap2 480x270
+        // Bitmap2 480x270
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.None")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.None,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.None")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.None,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Fit")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.Fit,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Fit")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.Fit,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Crop")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.Crop,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Crop")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillBounds")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.FillBounds,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillBounds")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.FillBounds,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillWidth")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.FillWidth,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillWidth")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.FillWidth,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillHeight")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.FillHeight,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillHeight")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.FillHeight,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Inside")
-            ImageWithThumbnail(
-                bitmap = bitmap2,
-                modifier = modifier,
-                contentScale = ContentScale.Inside,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Inside")
+        ImageWithThumbnail(
+            bitmap = bitmap2,
+            modifier = modifier,
+            contentScale = ContentScale.Inside,
+            contentDescription = null
+        )
 
-            // Bitmap3 1000x1000
+        // Bitmap3 1000x1000
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.FillBounds")
-            ImageWithThumbnail(
-                bitmap = bitmap3,
-                modifier = modifier,
-                contentScale = ContentScale.FillBounds,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.FillBounds")
+        ImageWithThumbnail(
+            bitmap = bitmap3,
+            modifier = modifier,
+            contentScale = ContentScale.FillBounds,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Fit")
-            ImageWithThumbnail(
-                bitmap = bitmap3,
-                modifier = modifier,
-                contentScale = ContentScale.Fit,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Fit")
+        ImageWithThumbnail(
+            bitmap = bitmap3,
+            modifier = modifier,
+            contentScale = ContentScale.Fit,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Crop")
-            ImageWithThumbnail(
-                bitmap = bitmap3,
-                modifier = modifier,
-                contentScale = ContentScale.Crop,
-                contentDescription = null
-            )
-        }
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Crop")
+        ImageWithThumbnail(
+            bitmap = bitmap3,
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+            contentDescription = null
+        )
     }
+
 }
 
 @Composable
@@ -287,49 +329,48 @@ private fun ThumbnailPositionChangeSample(
     ExpandableColumnWithTitle(
         title = "Thumbnail Position",
         color = Color.Red,
-        initialExpandState = true
+        initialExpandState = false
     ) {
-        Column {
-            Text(
-                "Change position of thumbnail from first one to second based on " +
-                        "touch proximity to Thumbnail"
-            )
-            Text(text = "TopLeft-TopRight")
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                contentDescription = null
-            )
+        Text(
+            "Change position of thumbnail from first one to second based on " +
+                    "touch proximity to Thumbnail"
+        )
+        Text(text = "TopLeft-TopRight")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "BottomRight-TopLeft")
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                thumbnailPosition = ThumbnailPosition.BottomRight,
-                moveTo = ThumbnailPosition.TopLeft,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "BottomRight-TopLeft")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            thumbnailPosition = ThumbnailPosition.BottomRight,
+            moveTo = ThumbnailPosition.TopLeft,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "TopRight-BottomLeft")
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                thumbnailPosition = ThumbnailPosition.TopRight,
-                moveTo = ThumbnailPosition.BottomLeft,
-                contentDescription = null
-            )
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "TopRight-BottomLeft")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            thumbnailPosition = ThumbnailPosition.TopRight,
+            moveTo = ThumbnailPosition.BottomLeft,
+            contentDescription = null
+        )
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "TopLeft not movable")
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                contentDescription = null,
-                moveableThumbnail = false
-            )
-        }
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "TopLeft not movable")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            contentDescription = null,
+            moveableThumbnail = false
+        )
+
     }
 }
 
@@ -358,117 +399,114 @@ private fun ThumbnailCallbackSample() {
     ExpandableColumnWithTitle(
         title = "Callbacks",
         color = Color.Red,
-        initialExpandState = true
+        initialExpandState = false
     ) {
-        Column {
+        Text(
+            "Canvas is added as content to Thumbnail to get center of thumbnail and " +
+                    "user's touch position with exact linear interpolation for any scaling mode of ScalableImage"
+        )
 
-            Text(
-                "Canvas is added as content to Thumbnail to get center of thumbnail and " +
-                        "user's touch position with exact linear interpolation for any scaling mode of ScalableImage"
-            )
+        Text(text = "ContentScale.FillBounds")
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.background(Color.LightGray)
 
-            Text(text = "ContentScale.FillBounds")
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.background(Color.LightGray)
+        ) {
 
+            ImageWithThumbnail(
+                bitmap = imageBitmap,
+                modifier = modifier,
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                onThumbnailCenterChange = {
+                    center1 = it
+                },
+                onTouchEvent = {
+                    offset1 = it
+                }
             ) {
-
-                ImageWithThumbnail(
-                    bitmap = imageBitmap,
-                    modifier = modifier,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    onThumbnailCenterChange = {
-                        center1 = it
-                    },
-                    onTouchEvent = {
-                        offset1 = it
-                    }
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(2.dp, Color.Yellow)
                 ) {
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(2.dp, Color.Yellow)
-                    ) {
-                        if (center1.isSpecified && center1.isFinite) {
-                            drawCircle(Color.Red, radius = 5.dp.toPx(), center = center1)
-                        }
-                        if (offset1.isSpecified && offset1.isFinite) {
-                            drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset1)
-                        }
+                    if (center1.isSpecified && center1.isFinite) {
+                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center1)
+                    }
+                    if (offset1.isSpecified && offset1.isFinite) {
+                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset1)
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Fit")
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .background(Color.LightGray)
-                    .border(2.dp, Color.Cyan)
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Fit")
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .background(Color.LightGray)
+                .border(2.dp, Color.Cyan)
+        ) {
+
+            ImageWithThumbnail(
+                bitmap = imageBitmap,
+                modifier = modifier,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                onThumbnailCenterChange = {
+                    center2 = it
+                },
+                onTouchEvent = {
+                    offset2 = it
+                }
             ) {
-
-                ImageWithThumbnail(
-                    bitmap = imageBitmap,
-                    modifier = modifier,
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    onThumbnailCenterChange = {
-                        center2 = it
-                    },
-                    onTouchEvent = {
-                        offset2 = it
-                    }
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(3.dp, Color.Black)
                 ) {
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(3.dp, Color.Black)
-                    ) {
-                        if (center2.isSpecified && center2.isFinite) {
-                            drawCircle(Color.Red, radius = 5.dp.toPx(), center = center2)
-                        }
-                        if (offset2.isSpecified && offset2.isFinite) {
-                            drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset2)
-                        }
+                    if (center2.isSpecified && center2.isFinite) {
+                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center2)
+                    }
+                    if (offset2.isSpecified && offset2.isFinite) {
+                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset2)
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(text = "ContentScale.Crop")
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .background(Color.LightGray)
-                    .border(2.dp, Color.Cyan)
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "ContentScale.Crop")
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .background(Color.LightGray)
+                .border(2.dp, Color.Cyan)
+        ) {
+
+            ImageWithThumbnail(
+                bitmap = imageBitmap,
+                modifier = modifier,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                onThumbnailCenterChange = {
+                    center3 = it
+                },
+                onTouchEvent = {
+                    offset3 = it
+                }
             ) {
-
-                ImageWithThumbnail(
-                    bitmap = imageBitmap,
-                    modifier = modifier,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    onThumbnailCenterChange = {
-                        center3 = it
-                    },
-                    onTouchEvent = {
-                        offset3 = it
-                    }
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(3.dp, Color.Black)
                 ) {
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(3.dp, Color.Black)
-                    ) {
-                        if (center3.isSpecified && center3.isFinite) {
-                            drawCircle(Color.Red, radius = 5.dp.toPx(), center = center3)
-                        }
-                        if (offset3.isSpecified && offset3.isFinite) {
-                            drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset3)
-                        }
+                    if (center3.isSpecified && center3.isFinite) {
+                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center3)
+                    }
+                    if (offset3.isSpecified && offset3.isFinite) {
+                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset3)
                     }
                 }
             }
@@ -523,7 +561,9 @@ private fun ExpandableColumnWithTitle(
         }
 
         AnimatedVisibility(visible = expanded) {
-            content()
+            Column {
+                content()
+            }
         }
     }
 }

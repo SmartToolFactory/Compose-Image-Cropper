@@ -30,7 +30,7 @@ fun ImageScaleDemo() {
 
     val imageBitmapLarge = ImageBitmap.imageResource(
         LocalContext.current.resources,
-        R.drawable.landscape1
+        R.drawable.landscape2
     )
 
     var imageBitmap by remember { mutableStateOf(imageBitmapLarge) }
@@ -50,7 +50,6 @@ fun ImageScaleDemo() {
                     .verticalScroll(rememberScrollState())
                     .padding(10.dp)
             ) {
-                println("⚠️ Image width: ${imageBitmap.width}, height: ${imageBitmap.height}")
                 ImageScale(imageBitmap = imageBitmap)
             }
         }
@@ -83,7 +82,7 @@ fun ImageScale(imageBitmap: ImageBitmap) {
 
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = contentScale
     ) {
@@ -94,7 +93,7 @@ fun ImageScale(imageBitmap: ImageBitmap) {
         )
     }
 
-    ImageSamples(modifier = modifier, imageBitmap = imageBitmap)
+//    ImageSamples(modifier = modifier, imageBitmap = imageBitmap)
 
 }
 
@@ -115,7 +114,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.None")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.None
     ) {
@@ -131,7 +130,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.Fit")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.Fit
     ) {
@@ -147,7 +146,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.Crop")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.Crop
     ) {
@@ -163,7 +162,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.FillBounds")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.FillBounds
     ) {
@@ -179,7 +178,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.FillWidth")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.FillWidth
     ) {
@@ -195,7 +194,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.FillHeight")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.FillHeight
     ) {
@@ -211,7 +210,7 @@ private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBit
     Text(text = "ImageWithConstraints ContentScale.Inside")
     ImageWithConstraints(
         modifier = modifier,
-        bitmap = imageBitmap,
+        imageBitmap = imageBitmap,
         contentDescription = null,
         contentScale = ContentScale.Inside
     ) {
