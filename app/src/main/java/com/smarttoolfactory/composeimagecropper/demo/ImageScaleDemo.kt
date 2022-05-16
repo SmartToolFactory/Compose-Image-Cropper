@@ -64,7 +64,6 @@ fun ImageScale(imageBitmap: ImageBitmap) {
         .border(2.dp, Color.Red)
         .fillMaxWidth()
         .aspectRatio(4 / 3f)
-//            .size((800 / density).dp, height = (300 / density).dp)
 
     Spacer(modifier = Modifier.height(20.dp))
     Text(
@@ -86,140 +85,16 @@ fun ImageScale(imageBitmap: ImageBitmap) {
         contentDescription = null,
         contentScale = contentScale
     ) {
+
         Spacer(
             modifier = Modifier
                 .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
+                .border(5.dp, Color.Yellow)
         )
     }
 
-//    ImageSamples(modifier = modifier, imageBitmap = imageBitmap)
+    ImageSamples(modifier = modifier, imageBitmap = imageBitmap)
 
-}
-
-@Composable
-private fun ImageWitConstraintsSamples(modifier: Modifier, imageBitmap: ImageBitmap) {
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(
-        text = "ImageWithConstraints ContentScale",
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color.Red,
-        modifier = Modifier.padding(8.dp)
-    )
-
-
-    Text(text = "ImageWithConstraints ContentScale.None")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.None
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(text = "ImageWithConstraints ContentScale.Fit")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.Fit
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(text = "ImageWithConstraints ContentScale.Crop")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.Crop
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(text = "ImageWithConstraints ContentScale.FillBounds")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.FillBounds
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(text = "ImageWithConstraints ContentScale.FillWidth")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.FillWidth
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(text = "ImageWithConstraints ContentScale.FillHeight")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.FillHeight
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Text(text = "ImageWithConstraints ContentScale.Inside")
-    ImageWithConstraints(
-        modifier = modifier,
-        imageBitmap = imageBitmap,
-        contentDescription = null,
-        contentScale = ContentScale.Inside
-    ) {
-        Spacer(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight)
-                .border(2.dp, Color.Yellow)
-        )
-    }
 }
 
 @Composable

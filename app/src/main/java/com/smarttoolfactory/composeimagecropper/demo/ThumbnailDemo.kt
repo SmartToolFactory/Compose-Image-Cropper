@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.isFinite
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
@@ -73,16 +74,25 @@ private fun ThumbnailDemoSamples(imageBitmap: ImageBitmap) {
         .fillMaxWidth()
         .aspectRatio(4 / 3f)
 
-    Spacer(modifier = Modifier.height(20.dp))
-    ThumbnailScaleModeCustomImageSample(imageBitmap)
-    ThumbnailScaleModeSample()
-    ThumbnailPositionChangeSample(modifier)
-    ThumbnailCallbackSample()
+    var contentScale by remember { mutableStateOf(ContentScale.Fit) }
+    ContentScaleSelectionMenu(contentScale = contentScale) {
+        contentScale = it
+    }
 
+    Spacer(modifier = Modifier.height(20.dp))
+    ThumbnailScaleModeCustomImageSample(modifier, imageBitmap, contentScale)
+    ThumbnailCallbackSample(modifier, imageBitmap, contentScale)
+    ThumbnailPositionChangeSample(modifier)
+    ThumbnailScaleModeSample()
 }
 
+
 @Composable
-private fun ThumbnailScaleModeCustomImageSample(imageBitmap: ImageBitmap) {
+private fun ThumbnailScaleModeCustomImageSample(
+    modifier: Modifier,
+    imageBitmap: ImageBitmap,
+    contentScale: ContentScale
+) {
 
     ExpandableColumnWithTitle(
         title = "Custom Image",
@@ -94,17 +104,6 @@ private fun ThumbnailScaleModeCustomImageSample(imageBitmap: ImageBitmap) {
             "Open an image using FloatingActionButton or change ContentScale " +
                     "using dropdown menu."
         )
-
-        val modifier = Modifier
-            .background(Color.LightGray)
-            .border(2.dp, Color.Red)
-            .fillMaxWidth()
-            .aspectRatio(4 / 3f)
-
-        var contentScale by remember { mutableStateOf(ContentScale.Fit) }
-        ContentScaleSelectionMenu(contentScale = contentScale) {
-            contentScale = it
-        }
 
         ImageWithThumbnail(
             bitmap = imageBitmap,
@@ -119,6 +118,122 @@ private fun ThumbnailScaleModeCustomImageSample(imageBitmap: ImageBitmap) {
                     .border(4.dp, Color.Yellow)
             )
         }
+    }
+}
+
+@Composable
+private fun ThumbnailCallbackSample(
+    modifier: Modifier,
+    imageBitmap: ImageBitmap,
+    contentScale: ContentScale
+) {
+
+    var center by remember { mutableStateOf(Offset.Unspecified) }
+    var offset by remember { mutableStateOf(Offset.Unspecified) }
+
+    ExpandableColumnWithTitle(
+        title = "Callbacks",
+        color = Color.Red,
+        initialExpandState = true
+    ) {
+        Text(
+            "Canvas is added as content to Thumbnail to get center of thumbnail and " +
+                    "user's touch position with exact linear interpolation for any scaling mode of ScalableImage"
+        )
+
+        Text("Offset: $offset")
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.background(Color.LightGray)
+
+        ) {
+
+            ImageWithThumbnail(
+                bitmap = imageBitmap,
+                modifier = modifier,
+                contentDescription = null,
+                contentScale = contentScale,
+                onThumbnailCenterChange = {
+                    center = it
+                },
+                onTouchEvent = {
+                    offset = it
+                }
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(2.dp, Color.Yellow)
+                ) {
+
+                    if (center.isSpecified && center.isFinite) {
+                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center)
+                    }
+                    if (offset.isSpecified && offset.isFinite) {
+                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThumbnailPositionChangeSample(
+    modifier: Modifier
+) {
+
+    val imageBitmap = ImageBitmap.imageResource(
+        LocalContext.current.resources,
+        R.drawable.landscape4
+    )
+
+    ExpandableColumnWithTitle(
+        title = "Thumbnail Position",
+        color = Color.Red,
+        initialExpandState = false
+    ) {
+        Text(
+            "Change position of thumbnail from first one to second based on " +
+                    "touch proximity to Thumbnail"
+        )
+        Text(text = "TopLeft-TopRight")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "BottomRight-TopLeft")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            thumbnailPosition = ThumbnailPosition.BottomRight,
+            moveTo = ThumbnailPosition.TopLeft,
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "TopRight-BottomLeft")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            thumbnailPosition = ThumbnailPosition.TopRight,
+            moveTo = ThumbnailPosition.BottomLeft,
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "TopLeft not movable")
+        ImageWithThumbnail(
+            bitmap = imageBitmap,
+            modifier = modifier,
+            contentDescription = null,
+            moveableThumbnail = false
+        )
+
     }
 }
 
@@ -314,204 +429,6 @@ private fun ThumbnailScaleModeSample() {
         )
     }
 
-}
-
-@Composable
-private fun ThumbnailPositionChangeSample(
-    modifier: Modifier
-) {
-
-    val imageBitmap = ImageBitmap.imageResource(
-        LocalContext.current.resources,
-        R.drawable.landscape4
-    )
-
-    ExpandableColumnWithTitle(
-        title = "Thumbnail Position",
-        color = Color.Red,
-        initialExpandState = false
-    ) {
-        Text(
-            "Change position of thumbnail from first one to second based on " +
-                    "touch proximity to Thumbnail"
-        )
-        Text(text = "TopLeft-TopRight")
-        ImageWithThumbnail(
-            bitmap = imageBitmap,
-            modifier = modifier,
-            contentDescription = null
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(text = "BottomRight-TopLeft")
-        ImageWithThumbnail(
-            bitmap = imageBitmap,
-            modifier = modifier,
-            thumbnailPosition = ThumbnailPosition.BottomRight,
-            moveTo = ThumbnailPosition.TopLeft,
-            contentDescription = null
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(text = "TopRight-BottomLeft")
-        ImageWithThumbnail(
-            bitmap = imageBitmap,
-            modifier = modifier,
-            thumbnailPosition = ThumbnailPosition.TopRight,
-            moveTo = ThumbnailPosition.BottomLeft,
-            contentDescription = null
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(text = "TopLeft not movable")
-        ImageWithThumbnail(
-            bitmap = imageBitmap,
-            modifier = modifier,
-            contentDescription = null,
-            moveableThumbnail = false
-        )
-
-    }
-}
-
-@Composable
-private fun ThumbnailCallbackSample() {
-
-    val imageBitmap = ImageBitmap.imageResource(
-        LocalContext.current.resources,
-        R.drawable.landscape2
-    )
-
-    var center1 by remember { mutableStateOf(Offset.Unspecified) }
-    var offset1 by remember { mutableStateOf(Offset.Unspecified) }
-
-    var center2 by remember { mutableStateOf(Offset.Unspecified) }
-    var offset2 by remember { mutableStateOf(Offset.Unspecified) }
-
-    var center3 by remember { mutableStateOf(Offset.Unspecified) }
-    var offset3 by remember { mutableStateOf(Offset.Unspecified) }
-
-    val modifier = Modifier
-        .border(3.dp, Color.Red)
-        .fillMaxWidth()
-        .aspectRatio(4 / 3f)
-
-    ExpandableColumnWithTitle(
-        title = "Callbacks",
-        color = Color.Red,
-        initialExpandState = false
-    ) {
-        Text(
-            "Canvas is added as content to Thumbnail to get center of thumbnail and " +
-                    "user's touch position with exact linear interpolation for any scaling mode of ScalableImage"
-        )
-
-        Text(text = "ContentScale.FillBounds")
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.background(Color.LightGray)
-
-        ) {
-
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                onThumbnailCenterChange = {
-                    center1 = it
-                },
-                onTouchEvent = {
-                    offset1 = it
-                }
-            ) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .border(2.dp, Color.Yellow)
-                ) {
-                    if (center1.isSpecified && center1.isFinite) {
-                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center1)
-                    }
-                    if (offset1.isSpecified && offset1.isFinite) {
-                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset1)
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(text = "ContentScale.Fit")
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .background(Color.LightGray)
-                .border(2.dp, Color.Cyan)
-        ) {
-
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                onThumbnailCenterChange = {
-                    center2 = it
-                },
-                onTouchEvent = {
-                    offset2 = it
-                }
-            ) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .border(3.dp, Color.Black)
-                ) {
-                    if (center2.isSpecified && center2.isFinite) {
-                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center2)
-                    }
-                    if (offset2.isSpecified && offset2.isFinite) {
-                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset2)
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(text = "ContentScale.Crop")
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .background(Color.LightGray)
-                .border(2.dp, Color.Cyan)
-        ) {
-
-            ImageWithThumbnail(
-                bitmap = imageBitmap,
-                modifier = modifier,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                onThumbnailCenterChange = {
-                    center3 = it
-                },
-                onTouchEvent = {
-                    offset3 = it
-                }
-            ) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .border(3.dp, Color.Black)
-                ) {
-                    if (center3.isSpecified && center3.isFinite) {
-                        drawCircle(Color.Red, radius = 5.dp.toPx(), center = center3)
-                    }
-                    if (offset3.isSpecified && offset3.isFinite) {
-                        drawCircle(Color.Green, radius = 5.dp.toPx(), center = offset3)
-                    }
-                }
-            }
-        }
-    }
 }
 
 /**

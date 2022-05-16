@@ -139,7 +139,7 @@ fun ImageCropper(
 //
 //                    if (isInBounds) {
 //                        offset = position
-////                        it.consumeDownChange()
+////                        it.consume()
 //                    }
 //                },
 //                onMove = {
@@ -157,7 +157,7 @@ fun ImageCropper(
 //                            size = Size(imageWidthInPx / 2f, imageHeightInPx / 2f)
 //                        )
 //
-//                        pointerInputChange.consumePositionChange()
+//                        pointerInputChange.consume()
 //                        println("🍎 Draw MODIFIER onMove() isInBounds: $isInBounds, offset: $offset, pointerSize:$pointerSize")
 ////                    }
 //

@@ -9,8 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.input.pointer.consumeDownChange
-import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
@@ -157,14 +155,14 @@ fun NativeCanvasSample2(imageBitmap: ImageBitmap, modifier: Modifier) {
                 val offsetX = position.x * bitmapWidth / imageWidth
                 val offsetY = position.y * bitmapHeight / imageHeight
                 offset = Offset(offsetX, offsetY)
-                it.consumeDownChange()
+                it.consume()
             },
             onMove = {
                 val position = it.position
                 val offsetX = position.x * bitmapWidth / imageWidth
                 val offsetY = position.y * bitmapHeight / imageHeight
                 offset = Offset(offsetX, offsetY)
-                it.consumePositionChange()
+                it.consume()
             },
             delayAfterDownInMillis = 20
         )
@@ -276,14 +274,14 @@ fun ComposeCanvasSample(modifier: Modifier, imageBitmap: ImageBitmap) {
                 val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
                 val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
                 offset = Offset(offsetX, offsetY)
-                it.consumeDownChange()
+                it.consume()
             },
             onMove = {
                 val position = it.position
                 val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
                 val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
                 offset = Offset(offsetX, offsetY)
-                it.consumePositionChange()
+                it.consume()
             },
             delayAfterDownInMillis = 20
         )
