@@ -16,8 +16,6 @@ import androidx.compose.ui.geometry.isFinite
 import androidx.compose.ui.geometry.isUnspecified
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.input.pointer.consumeDownChange
-import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -213,12 +211,22 @@ fun ThumbnailLayout(
 
     BoxWithConstraints(modifier) {
         var offset by remember { mutableStateOf(Offset.Infinite) }
-
-        val width = constraints.maxWidth.toFloat()
-        val height = constraints.maxHeight.toFloat()
+        // This is required as pointerInput key to create pointer input with latest
+        // and constraining offset inside boundaries of Canvas
+        val size by remember(constraints) {
+            mutableStateOf(
+                IntSize(
+                    constraints.maxWidth,
+                    constraints.maxHeight
+                )
+            )
+        }
+        val width = size.width.toFloat()
+        val height = size.height.toFloat()
 
         val thumbnailModifier = Modifier
-            .pointerMotionEvents(Unit,
+            .pointerMotionEvents(
+                key1 = size,
                 onDown = { pointerInputChange ->
 
                     val offsetX = pointerInputChange.position.x
@@ -229,10 +237,9 @@ fun ThumbnailLayout(
                     offset = Offset(offsetX, offsetY)
                     onTouchEvent?.invoke(offset)
 
-                    pointerInputChange.consumeDownChange()
+                    pointerInputChange.consume()
                 },
                 onMove = { pointerInputChange ->
-
                     val offsetX = pointerInputChange.position.x
                         .coerceIn(0f, width)
                     val offsetY = pointerInputChange.position.y
@@ -241,7 +248,7 @@ fun ThumbnailLayout(
                     offset = Offset(offsetX, offsetY)
                     onTouchEvent?.invoke(offset)
 
-                    pointerInputChange.consumePositionChange()
+                    pointerInputChange.consume()
                 }
             )
 

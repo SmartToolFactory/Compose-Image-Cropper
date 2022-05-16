@@ -90,8 +90,8 @@ fun ImageWithConstraints(
 
         // Image is the container for bitmap that is located inside Box
         // image bounds can be smaller or bigger than its parent based on how it's scaled
-        val imageWidth = bitmapWidth * scaleFactor.scaleX
-        val imageHeight = bitmapHeight * scaleFactor.scaleY
+        val imageWidth = (bitmapWidth * scaleFactor.scaleX).coerceAtMost(boxWidth.toFloat())
+        val imageHeight = (bitmapHeight * scaleFactor.scaleY).coerceAtMost(boxHeight.toFloat())
 
         val bitmapRect = getScaledBitmapRect(
             boxWidth = boxWidth,
@@ -221,8 +221,8 @@ private fun ImageLayout(
     val canvasHeightInDp: Dp
 
     with(density) {
-        canvasWidthInDp = bitmapWidth * scaleX.toDp()
-        canvasHeightInDp = bitmapHeight * scaleY.toDp()
+        canvasWidthInDp = imageWidth.toDp()
+        canvasHeightInDp = imageHeight.toDp()
     }
 
     val imageScopeImpl = ImageScopeImpl(
