@@ -90,8 +90,8 @@ fun ImageWithConstraints(
 
         // Image is the container for bitmap that is located inside Box
         // image bounds can be smaller or bigger than its parent based on how it's scaled
-        val imageWidth = (bitmapWidth * scaleFactor.scaleX).coerceAtMost(boxWidth.toFloat())
-        val imageHeight = (bitmapHeight * scaleFactor.scaleY).coerceAtMost(boxHeight.toFloat())
+        val imageWidth = bitmapWidth * scaleFactor.scaleX
+        val imageHeight = bitmapHeight * scaleFactor.scaleY
 
         val bitmapRect = getScaledBitmapRect(
             boxWidth = boxWidth,
@@ -105,11 +105,11 @@ fun ImageWithConstraints(
         ImageLayout(
             constraints = constraints,
             imageBitmap = imageBitmap,
-            scaleX = scaleFactor.scaleX,
-            scaleY = scaleFactor.scaleY,
             bitmapRect = bitmapRect,
             imageWidth = imageWidth,
             imageHeight = imageHeight,
+            boxWidth = boxWidth,
+            boxHeight = boxHeight,
             alpha = alpha,
             colorFilter = colorFilter,
             filterQuality = filterQuality,
@@ -201,11 +201,11 @@ private fun BoxWithConstraintsScope.getParentSize(
 private fun ImageLayout(
     constraints: Constraints,
     imageBitmap: ImageBitmap,
-    scaleX: Float,
-    scaleY: Float,
     bitmapRect: IntRect,
     imageWidth: Float,
     imageHeight: Float,
+    boxWidth: Int,
+    boxHeight: Int,
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
@@ -213,16 +213,14 @@ private fun ImageLayout(
     content: @Composable ImageScope.() -> Unit
 ) {
     val density = LocalDensity.current
-    val bitmapWidth = imageBitmap.width
-    val bitmapHeight = imageBitmap.height
 
     // Dimensions of canvas that will draw this Bitmap
     val canvasWidthInDp: Dp
     val canvasHeightInDp: Dp
 
     with(density) {
-        canvasWidthInDp = imageWidth.toDp()
-        canvasHeightInDp = imageHeight.toDp()
+        canvasWidthInDp = imageWidth.coerceAtMost(boxWidth.toFloat()).toDp()
+        canvasHeightInDp = imageHeight.coerceAtMost(boxHeight.toFloat()).toDp()
     }
 
     val imageScopeImpl = ImageScopeImpl(
@@ -247,7 +245,6 @@ private fun ImageLayout(
 
     imageScopeImpl.content()
 }
-
 
 @Composable
 private fun ImageImpl(
