@@ -4,19 +4,16 @@ import android.graphics.Bitmap
 import androidx.annotation.IntRange
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.isFinite
-import androidx.compose.ui.geometry.isUnspecified
+import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -30,7 +27,7 @@ import kotlin.math.sqrt
  * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
- * @param bitmap The [ImageBitmap] to draw
+ * @param imageBitmap The [ImageBitmap] to draw
  * @param contentScale Optional scale parameter used to determine the aspect ratio scaling to be used
  * if the bounds are a different size from the intrinsic size of the [ImageBitmap]
  * @param alignment Optional alignment parameter used to place the [ImageBitmap] in the given
@@ -39,7 +36,7 @@ import kotlin.math.sqrt
  * @param alpha Optional opacity to be applied to the [ImageBitmap] when it is rendered onscreen
  * @param colorFilter Optional ColorFilter to apply for the [ImageBitmap] when it is rendered
  * onscreen
- * @param filterQuality Sampling algorithm applied to the [bitmap] when it is scaled and drawn
+ * @param filterQuality Sampling algorithm applied to the [imageBitmap] when it is scaled and drawn
  * into the destination. The default is [FilterQuality.Low] which scales using a bilinear
  * sampling algorithm
  * @param thumbnailSize size of the thumbnail
@@ -50,18 +47,20 @@ import kotlin.math.sqrt
  * it's top right corner.
  * @param thumbnailZoom zoom amount of thumbnail. It's in range of [100-500]. 100 corresponds
  * to 1x or 100% zoom
- * @param onTouchEvent callback to get user's touch position when a move
+ * @param onDown callback that notifies at first interaction and returns offset
+ * @param onMove callback that notifier user's touch position when a pointer is moving
+ * @param onUp callback that notifies last pointer on screen is up
  * event occurs on this Composable
  * @param onThumbnailCenterChange callback to get center of thumbnail
  * @param content is an optional Composable that can be matched at exact position
- * where [bitmap] is drawn.
- * This is useful for drawing on touch position or center of thumbnail or to get exact matching
- * positions for various purposes
+ * where [imageBitmap] is drawn. content can be used for drawing over thumb or using [Offset] from
+ * motion callbacks or displaying image, icon or watermark above this Composable with
+ * exact bounds [imageBitmap] is drawn
  */
 @Composable
 fun ImageWithThumbnail(
     modifier: Modifier = Modifier,
-    bitmap: ImageBitmap,
+    imageBitmap: ImageBitmap,
     contentScale: ContentScale = ContentScale.Fit,
     alignment: Alignment = Alignment.Center,
     contentDescription: String?,
@@ -73,7 +72,9 @@ fun ImageWithThumbnail(
     moveableThumbnail: Boolean = true,
     moveTo: ThumbnailPosition = ThumbnailPosition.TopRight,
     @IntRange(from = 100, to = 500) thumbnailZoom: Int = 200,
-    onTouchEvent: ((Offset) -> Unit)? = null,
+    onDown: ((Offset) -> Unit)? = null,
+    onMove: ((Offset) -> Unit)? = null,
+    onUp: (() -> Unit)? = null,
     onThumbnailCenterChange: ((Offset) -> Unit)? = null,
     drawImage: Boolean = true,
     content: @Composable ImageScope.() -> Unit = {}
@@ -87,40 +88,68 @@ fun ImageWithThumbnail(
         alpha = alpha,
         colorFilter = colorFilter,
         filterQuality = filterQuality,
-        imageBitmap = bitmap,
+        imageBitmap = imageBitmap,
         drawImage = drawImage
     ) {
 
         val imageScope = this
+        val density = LocalDensity.current
 
-        val scaledBitmap =
-            remember(bitmap, rect, imageWidth, imageHeight, contentScale) {
-                // This bitmap is needed when we crop original bitmap due to scaling mode
-                // and aspect ratio result of cropping
-                // We might have center section of the image after cropping, and
-                // because of that thumbLayout either should have rectangle and some
-                // complex calculation for srcOffset and srcSide along side with touch offset
-                // or we can create a new bitmap that only contains area bounded by rectangle
-                Bitmap.createBitmap(
-                    bitmap.asAndroidBitmap(),
-                    rect.left,
-                    rect.top,
-                    rect.width,
-                    rect.height
-                ).asImageBitmap()
-            }
+        val scaledBitmap = getScaledBitmap(imageBitmap, contentScale)
+
+
+        val size = rememberUpdatedState(
+            newValue = Size(
+                imageWidth.value * density.density, imageHeight.value * density.density
+            )
+        )
+
+        var offset by remember(key1 = contentScale, key2 = imageBitmap) {
+            println("!!! SENDING UNSPECIFIED OFFSET")
+            onMove?.invoke(Offset.Unspecified)
+            mutableStateOf(
+                Offset.Unspecified
+            )
+        }
+
+        val thumbnailModifier = Modifier
+            .pointerMotionEvents(imageBitmap, contentScale,
+                onDown = { pointerInputChange: PointerInputChange ->
+
+                    val offsetX = pointerInputChange.position.x
+                        .coerceIn(0f, size.value.width)
+                    val offsetY = pointerInputChange.position.y
+                        .coerceIn(0f, size.value.height)
+
+                    offset = Offset(offsetX, offsetY)
+                    onDown?.invoke(offset)
+                    pointerInputChange.consume()
+                },
+                onMove = { pointerInputChange: PointerInputChange ->
+
+                    val offsetX = pointerInputChange.position.x
+                        .coerceIn(0f, size.value.width)
+                    val offsetY = pointerInputChange.position.y
+                        .coerceIn(0f, size.value.height)
+                    offset = Offset(offsetX, offsetY)
+                    onMove?.invoke(offset)
+                    pointerInputChange.consume()
+                },
+                onUp = {
+                    onUp?.invoke()
+                }
+            )
 
         ThumbnailLayout(
-            modifier = Modifier
-                .size(this.imageWidth, this.imageHeight),
+            modifier = thumbnailModifier.size(this.imageWidth, this.imageHeight),
             imageBitmap = scaledBitmap,
             thumbnailSize = thumbnailSize,
             thumbnailZoom = thumbnailZoom,
             thumbnailPosition = thumbnailPosition,
             moveableThumbnail = moveableThumbnail,
             moveTo = moveTo,
-            onTouchEvent = onTouchEvent,
-            onThumbnailCenterChange = onThumbnailCenterChange,
+            offset = offset,
+            onThumbnailCenterChange = onThumbnailCenterChange
         )
 
         Box(
@@ -132,6 +161,7 @@ fun ImageWithThumbnail(
     }
 
 }
+
 
 /**
  * [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
@@ -176,96 +206,6 @@ fun ThumbnailLayout(
     )
 }
 
-/**
- * [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
- * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
- * is set to true moves thumbnail to corner specified by [moveTo]
- *
- * @param imageBitmap The [ImageBitmap] to draw
- * into the destination. The default is [FilterQuality.Low] which scales using a bilinear
- * sampling algorithm
- * @param thumbnailSize size of the thumbnail
- * @param thumbnailPosition position of the thumbnail. It's top left corner by default
- * @param moveableThumbnail flag that changes mobility of thumbnail when user touch is
- * in proximity of the thumbnail
- * @param moveTo corner to move thumbnail if user touch is in proximity of the thumbnail. By default
- * it's top right corner.
- * @param thumbnailZoom zoom amount of thumbnail. It's in range of [100-500]. 100 corresponds
- * to 1x or 100% zoom
- * @param onTouchEvent callback to get user's touch position when a move
- * event occurs on this Composable
- * @param onThumbnailCenterChange callback to get center of thumbnail
- */
-@Composable
-fun ThumbnailLayout(
-    modifier: Modifier,
-    imageBitmap: ImageBitmap,
-    thumbnailSize: Dp,
-    @IntRange(from = 100, to = 500) thumbnailZoom: Int = 200,
-    thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
-    moveableThumbnail: Boolean = true,
-    moveTo: ThumbnailPosition = ThumbnailPosition.TopRight,
-    onTouchEvent: ((Offset) -> Unit)? = null,
-    onThumbnailCenterChange: ((Offset) -> Unit)? = null
-) {
-
-    BoxWithConstraints(modifier) {
-        var offset by remember { mutableStateOf(Offset.Infinite) }
-        // This is required as pointerInput key to create pointer input with latest
-        // and constraining offset inside boundaries of Canvas
-        val size by remember(constraints) {
-            mutableStateOf(
-                IntSize(
-                    constraints.maxWidth,
-                    constraints.maxHeight
-                )
-            )
-        }
-        val width = size.width.toFloat()
-        val height = size.height.toFloat()
-
-        val thumbnailModifier = Modifier
-            .pointerMotionEvents(
-                key1 = size,
-                onDown = { pointerInputChange ->
-
-                    val offsetX = pointerInputChange.position.x
-                        .coerceIn(0f, width)
-                    val offsetY = pointerInputChange.position.y
-                        .coerceIn(0f, height)
-
-                    offset = Offset(offsetX, offsetY)
-                    onTouchEvent?.invoke(offset)
-
-                    pointerInputChange.consume()
-                },
-                onMove = { pointerInputChange ->
-                    val offsetX = pointerInputChange.position.x
-                        .coerceIn(0f, width)
-                    val offsetY = pointerInputChange.position.y
-                        .coerceIn(0f, height)
-
-                    offset = Offset(offsetX, offsetY)
-                    onTouchEvent?.invoke(offset)
-
-                    pointerInputChange.consume()
-                }
-            )
-
-        ThumbnailLayoutImpl(
-            modifier = thumbnailModifier.fillMaxSize(),
-            imageBitmap = imageBitmap,
-            thumbnailSize = thumbnailSize,
-            thumbnailZoom = thumbnailZoom,
-            thumbnailPosition = thumbnailPosition,
-            moveableThumbnail = moveableThumbnail,
-            moveTo = moveTo,
-            offset = offset,
-            onThumbnailCenterChange = onThumbnailCenterChange
-        )
-    }
-}
-
 @Composable
 private fun ThumbnailLayoutImpl(
     modifier: Modifier,
@@ -307,13 +247,17 @@ private fun ThumbnailLayoutImpl(
         val zoom = thumbnailZoom.coerceAtLeast(100)
         val zoomScale = zoom / 100f
 
-        val srcOffset = getSrcOffset(
-            offset = offset,
-            imageBitmap = imageBitmap,
-            zoomScale = zoomScale,
-            size = size,
-            imageThumbnailSize = imageThumbnailSize
-        )
+        val srcOffset = if (offset.isSpecified && offset.isFinite) {
+            getSrcOffset(
+                offset = offset,
+                imageBitmap = imageBitmap,
+                zoomScale = zoomScale,
+                size = size,
+                imageThumbnailSize = imageThumbnailSize
+            )
+        } else {
+            IntOffset.Zero
+        }
 
         drawImage(
             image = imageBitmap,
@@ -326,6 +270,31 @@ private fun ThumbnailLayoutImpl(
             dstSize = IntSize(imageThumbnailSize, imageThumbnailSize)
         )
     }
+}
+
+@Composable
+private fun ImageScope.getScaledBitmap(
+    bitmap: ImageBitmap,
+    contentScale: ContentScale
+): ImageBitmap {
+    val scaledBitmap =
+
+        remember(bitmap, rect, imageWidth, imageHeight, contentScale) {
+            // This bitmap is needed when we crop original bitmap due to scaling mode
+            // and aspect ratio result of cropping
+            // We might have center section of the image after cropping, and
+            // because of that thumbLayout either should have rectangle and some
+            // complex calculation for srcOffset and srcSide along side with touch offset
+            // or we can create a new bitmap that only contains area bounded by rectangle
+            Bitmap.createBitmap(
+                bitmap.asAndroidBitmap(),
+                rect.left,
+                rect.top,
+                rect.width,
+                rect.height
+            ).asImageBitmap()
+        }
+    return scaledBitmap
 }
 
 private fun getThumbnailPositionOffset(

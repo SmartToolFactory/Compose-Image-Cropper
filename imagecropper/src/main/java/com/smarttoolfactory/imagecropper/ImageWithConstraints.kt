@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.*
  * A composable that lays out and draws a given [ImageBitmap]. This will attempt to
  * size the composable according to the [ImageBitmap]'s given width and height.
  *
- * * [ImageScope] contains [Constraints] since [ImageWithConstraints] uses [BoxWithConstraints]
+ * [ImageScope] contains [Constraints] since [ImageWithConstraints] uses [BoxWithConstraints]
  * also it contains information about canvas width, height and top left position relative
  * to parent [BoxWithConstraints].
  *
@@ -171,7 +171,6 @@ private fun getScaledBitmapRect(
  *  they are used, but when any dimension is set to infinity intrinsic dimensions of
  *  [ImageBitmap] are returned
  */
-@Composable
 private fun BoxWithConstraintsScope.getParentSize(
     bitmapWidth: Int,
     bitmapHeight: Int
@@ -223,6 +222,12 @@ private fun ImageLayout(
         canvasHeightInDp = imageHeight.coerceAtMost(boxHeight.toFloat()).toDp()
     }
 
+    // Send the not scaled ImageBitmap dimensions which can be larger than Canvas size
+    // but the one constraint with Canvas size
+    // because modes like ContentScale.Crop
+    // which displays center section of the ImageBitmap if it's scaled
+    // to be bigger than Canvas.
+    // What user see on screen cannot be bigger than Canvas dimensions
     val imageScopeImpl = ImageScopeImpl(
         density = density,
         constraints = constraints,
@@ -231,6 +236,8 @@ private fun ImageLayout(
         rect = bitmapRect
     )
 
+    // width and height params for translating draw position if scaled Image dimensions are
+    // bigger than Canvas dimensions
     if (drawImage) {
         ImageImpl(
             modifier = Modifier.size(canvasWidthInDp, canvasHeightInDp),
@@ -265,7 +272,9 @@ private fun ImageImpl(
         val canvasHeight = size.height.toInt()
 
         // Translate to left or down when Image size is bigger than this canvas.
-        // ImageSize is bigger when scale mode like Crop is used
+        // ImageSize is bigger when scale modes like Crop is used which enlarges image
+        // For instance 1000x1000 image can be 1000x2000 for a Canvas with 1000x1000
+        // so top is translated -500 to draw center of ImageBitmap
         translate(
             top = (-height + canvasHeight) / 2f,
             left = (-width + canvasWidth) / 2f,

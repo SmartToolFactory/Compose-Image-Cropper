@@ -19,7 +19,6 @@ import androidx.compose.ui.geometry.isFinite
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
@@ -106,7 +105,7 @@ private fun ThumbnailScaleModeCustomImageSample(
         )
 
         ImageWithThumbnail(
-            bitmap = imageBitmap,
+            imageBitmap = imageBitmap,
             modifier = modifier,
             contentScale = contentScale,
             thumbnailZoom = 100,
@@ -150,14 +149,14 @@ private fun ThumbnailCallbackSample(
         ) {
 
             ImageWithThumbnail(
-                bitmap = imageBitmap,
+                imageBitmap = imageBitmap,
                 modifier = modifier,
                 contentDescription = null,
                 contentScale = contentScale,
                 onThumbnailCenterChange = {
                     center = it
                 },
-                onTouchEvent = {
+                onMove = {
                     offset = it
                 }
             ) {
@@ -200,7 +199,7 @@ private fun ThumbnailPositionChangeSample(
         )
         Text(text = "TopLeft-TopRight")
         ImageWithThumbnail(
-            bitmap = imageBitmap,
+            imageBitmap = imageBitmap,
             modifier = modifier,
             contentDescription = null
         )
@@ -208,7 +207,7 @@ private fun ThumbnailPositionChangeSample(
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "BottomRight-TopLeft")
         ImageWithThumbnail(
-            bitmap = imageBitmap,
+            imageBitmap = imageBitmap,
             modifier = modifier,
             thumbnailPosition = ThumbnailPosition.BottomRight,
             moveTo = ThumbnailPosition.TopLeft,
@@ -218,7 +217,7 @@ private fun ThumbnailPositionChangeSample(
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "TopRight-BottomLeft")
         ImageWithThumbnail(
-            bitmap = imageBitmap,
+            imageBitmap = imageBitmap,
             modifier = modifier,
             thumbnailPosition = ThumbnailPosition.TopRight,
             moveTo = ThumbnailPosition.BottomLeft,
@@ -228,7 +227,7 @@ private fun ThumbnailPositionChangeSample(
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "TopLeft not movable")
         ImageWithThumbnail(
-            bitmap = imageBitmap,
+            imageBitmap = imageBitmap,
             modifier = modifier,
             contentDescription = null,
             moveableThumbnail = false
@@ -274,7 +273,7 @@ private fun ThumbnailScaleModeSample() {
         // Bitmap1 1920x1280
         Text(text = "ContentScale.None")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.None,
             contentDescription = null
@@ -283,7 +282,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Fit")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.Fit,
             contentDescription = null
@@ -292,7 +291,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Crop")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.Crop,
             contentDescription = null
@@ -301,7 +300,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillBounds")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.FillBounds,
             contentDescription = null
@@ -310,7 +309,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillWidth")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.FillWidth,
             contentDescription = null
@@ -319,7 +318,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillHeight")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.FillHeight,
             contentDescription = null
@@ -328,7 +327,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Inside")
         ImageWithThumbnail(
-            bitmap = bitmap1,
+            imageBitmap = bitmap1,
             modifier = modifier,
             contentScale = ContentScale.Inside,
             contentDescription = null
@@ -339,7 +338,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.None")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.None,
             contentDescription = null
@@ -348,7 +347,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Fit")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.Fit,
             contentDescription = null
@@ -357,7 +356,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Crop")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.Crop,
             contentDescription = null
@@ -366,7 +365,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillBounds")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.FillBounds,
             contentDescription = null
@@ -375,7 +374,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillWidth")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.FillWidth,
             contentDescription = null
@@ -384,7 +383,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillHeight")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.FillHeight,
             contentDescription = null
@@ -393,7 +392,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Inside")
         ImageWithThumbnail(
-            bitmap = bitmap2,
+            imageBitmap = bitmap2,
             modifier = modifier,
             contentScale = ContentScale.Inside,
             contentDescription = null
@@ -404,7 +403,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.FillBounds")
         ImageWithThumbnail(
-            bitmap = bitmap3,
+            imageBitmap = bitmap3,
             modifier = modifier,
             contentScale = ContentScale.FillBounds,
             contentDescription = null
@@ -413,7 +412,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Fit")
         ImageWithThumbnail(
-            bitmap = bitmap3,
+            imageBitmap = bitmap3,
             modifier = modifier,
             contentScale = ContentScale.Fit,
             contentDescription = null
@@ -422,7 +421,7 @@ private fun ThumbnailScaleModeSample() {
         Spacer(modifier = Modifier.height(30.dp))
         Text(text = "ContentScale.Crop")
         ImageWithThumbnail(
-            bitmap = bitmap3,
+            imageBitmap = bitmap3,
             modifier = modifier,
             contentScale = ContentScale.Crop,
             contentDescription = null
