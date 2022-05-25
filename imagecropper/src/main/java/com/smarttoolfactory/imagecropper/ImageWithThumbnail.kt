@@ -95,8 +95,7 @@ fun ImageWithThumbnail(
         val imageScope = this
         val density = LocalDensity.current
 
-        val scaledBitmap = getScaledBitmap(imageBitmap, contentScale)
-
+        val scaledImageBitmap = getScaledImageBitmap(imageBitmap, contentScale)
 
         val size = rememberUpdatedState(
             newValue = Size(
@@ -104,36 +103,30 @@ fun ImageWithThumbnail(
             )
         )
 
-        var offset by remember(key1 = contentScale, key2 = imageBitmap) {
-            println("!!! SENDING UNSPECIFIED OFFSET")
-            onMove?.invoke(Offset.Unspecified)
+        var offset by remember(key1 = contentScale, key2 = scaledImageBitmap) {
             mutableStateOf(
                 Offset.Unspecified
             )
         }
 
+        fun updateOffset(pointerInputChange: PointerInputChange): Offset {
+            val offsetX = pointerInputChange.position.x
+                .coerceIn(0f, size.value.width)
+            val offsetY = pointerInputChange.position.y
+                .coerceIn(0f, size.value.height)
+            pointerInputChange.consume()
+            return Offset(offsetX, offsetY)
+        }
+
         val thumbnailModifier = Modifier
-            .pointerMotionEvents(imageBitmap, contentScale,
+            .pointerMotionEvents(key1 = contentScale, key2 = scaledImageBitmap,
                 onDown = { pointerInputChange: PointerInputChange ->
-
-                    val offsetX = pointerInputChange.position.x
-                        .coerceIn(0f, size.value.width)
-                    val offsetY = pointerInputChange.position.y
-                        .coerceIn(0f, size.value.height)
-
-                    offset = Offset(offsetX, offsetY)
+                    offset = updateOffset(pointerInputChange)
                     onDown?.invoke(offset)
-                    pointerInputChange.consume()
                 },
                 onMove = { pointerInputChange: PointerInputChange ->
-
-                    val offsetX = pointerInputChange.position.x
-                        .coerceIn(0f, size.value.width)
-                    val offsetY = pointerInputChange.position.y
-                        .coerceIn(0f, size.value.height)
-                    offset = Offset(offsetX, offsetY)
+                    offset = updateOffset(pointerInputChange)
                     onMove?.invoke(offset)
-                    pointerInputChange.consume()
                 },
                 onUp = {
                     onUp?.invoke()
@@ -142,7 +135,7 @@ fun ImageWithThumbnail(
 
         ThumbnailLayout(
             modifier = thumbnailModifier.size(this.imageWidth, this.imageHeight),
-            imageBitmap = scaledBitmap,
+            imageBitmap = scaledImageBitmap,
             thumbnailSize = thumbnailSize,
             thumbnailZoom = thumbnailZoom,
             thumbnailPosition = thumbnailPosition,
@@ -159,9 +152,7 @@ fun ImageWithThumbnail(
             imageScope.content()
         }
     }
-
 }
-
 
 /**
  * [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
@@ -273,7 +264,7 @@ private fun ThumbnailLayoutImpl(
 }
 
 @Composable
-private fun ImageScope.getScaledBitmap(
+internal fun ImageScope.getScaledImageBitmap(
     bitmap: ImageBitmap,
     contentScale: ContentScale
 ): ImageBitmap {
@@ -371,7 +362,7 @@ private fun calculateThumbnailOffset(
  * Setting positive offset on x axis moves visible section of bitmap to the left.
  * @param offset pointer touch position
  * @param imageBitmap is image that will be drawn
- * @param zoomScale scale of zoom between [1]
+ * @param zoomScale scale of zoom between [1f-5f]
  */
 private fun getSrcOffset(
     offset: Offset,
