@@ -1,6 +1,5 @@
 package com.smarttoolfactory.imagecropper
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
@@ -28,7 +26,7 @@ import kotlin.math.sin
 @Composable
 fun ImageCropper(
     modifier: Modifier = Modifier,
-    bitmap: ImageBitmap,
+    imageBitmap: ImageBitmap,
     contentScale: ContentScale = ContentScale.Fit,
     alignment: Alignment = Alignment.Center,
     contentDescription: String?,
@@ -44,14 +42,13 @@ fun ImageCropper(
         alpha = alpha,
         colorFilter = colorFilter,
         filterQuality = filterQuality,
-        imageBitmap = bitmap,
+        imageBitmap = imageBitmap,
         drawImage = false
     ) {
 
-
         // No crop operation is applied by ScalableImage so rect points to bounds of original
         // bitmap
-        val scaledBitmap = getBitmap(bitmap = bitmap, rect = rect)
+        val scaledImageBitmap = getScaledImageBitmap(imageBitmap, contentScale)
 
         val imageWidthInPx: Float
         val imageHeightInPx: Float
@@ -104,15 +101,16 @@ fun ImageCropper(
 
                         val oldScale = zoom
                         val newScale = zoom * gestureZoom
-                        val newOffset = (offset + gestureCentroid / oldScale).rotateBy(gestureRotate) -
-                                (gestureCentroid / newScale + gesturePan / oldScale)
+                        val newOffset =
+                            (offset + gestureCentroid / oldScale).rotateBy(gestureRotate) -
+                                    (gestureCentroid / newScale + gesturePan / oldScale)
 
                         val offsetX = (newOffset.x)
 //                            .coerceIn(0f, imageWidthInPx)
                         val offsetY = (newOffset.y)
 //                            .coerceIn(0f, imageHeightInPx)
 
-                        offset =Offset(offsetX,offsetY)
+                        offset = Offset(offsetX, offsetY)
 
 
 //                        cropRect = Rect(
@@ -123,55 +121,21 @@ fun ImageCropper(
                         zoom = newScale.coerceIn(1f..10f)
 //                            zoom = newScale
                         angle += gestureRotate
-                        println("🔥 IMAGE MODIFIER: $offset, zoom: $zoom, " +
-                                "translationX: ${-offset.x * zoom}, translationY: ${-offset.y * zoom}")
+                        println(
+                            "🔥 IMAGE MODIFIER: $offset, zoom: $zoom, " +
+                                    "translationX: ${-offset.x * zoom}, translationY: ${-offset.y * zoom}"
+                        )
 
                     }
                 )
             }
-//            .pointerMotionEventList(
-//                Unit,
-//                onDown = {
-//                    val position = it.position
-//                    isInBounds = cropRect.contains(it.position)
-//
-//                    println("🍏 Draw MODIFIER onDown() isInBounds: $isInBounds, position: $position")
-//
-//                    if (isInBounds) {
-//                        offset = position
-////                        it.consume()
-//                    }
-//                },
-//                onMove = {
-//
-//                    val pointerSize = it.size
-////                    if (isInBounds && pointerSize == 1) {
-//                        val pointerInputChange = it.first()
-//                        val position = pointerInputChange.position
-//                        val offsetX = position.x
-//                        val offsetY = position.y
-//                        offset = Offset(offsetX, offsetY)
-//
-//                        cropRect = Rect(
-//                            offset = offset,
-//                            size = Size(imageWidthInPx / 2f, imageHeightInPx / 2f)
-//                        )
-//
-//                        pointerInputChange.consume()
-//                        println("🍎 Draw MODIFIER onMove() isInBounds: $isInBounds, offset: $offset, pointerSize:$pointerSize")
-////                    }
-//
-//                },
-//                onUp = {
-//                    isInBounds = false
-//                }
-//            )
+
 
         CropperImpl(
             modifier = Modifier.size(imageWidth, imageHeight),
             imageOverlayModifier = imageModifier,
             imageDrawingModifier = drawingModifier,
-            imageBitmap = scaledBitmap,
+            imageBitmap = scaledImageBitmap,
             rect = cropRect
         )
     }
@@ -239,31 +203,6 @@ private fun DrawingOverlay(
     }
 }
 
-@Composable
-private fun getBitmap(bitmap: ImageBitmap, rect: IntRect): ImageBitmap {
-    return if (bitmap.width == rect.width &&
-        bitmap.height == rect.height &&
-        !bitmap.asAndroidBitmap().isRecycled
-    ) {
-        bitmap
-    } else {
-        remember(rect.size, rect.topLeft) {
-            // This bitmap is needed when we crop original bitmap due to scaling mode
-            // and aspect ratio result of cropping
-            // We might have center section of the image after cropping, and
-            // because of that thumbLayout either should have rectangle and some
-            // complex calculation for srcOffset and srcSide along side with touch offset
-            // or we can create a new bitmap that only contains area bounded by rectangle
-            Bitmap.createBitmap(
-                bitmap.asAndroidBitmap(),
-                rect.left,
-                rect.top,
-                rect.width,
-                rect.height
-            ).asImageBitmap()
-        }
-    }
-}
 
 /**
  * Rotates the given offset around the origin by the given angle in degrees.

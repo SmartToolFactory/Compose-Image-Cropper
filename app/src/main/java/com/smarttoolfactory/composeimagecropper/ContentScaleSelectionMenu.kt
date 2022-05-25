@@ -3,7 +3,7 @@ package com.smarttoolfactory.composeimagecropper
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +19,6 @@ val contentScaleOptions =
 
 @Composable
 fun ContentScaleSelectionMenu(
-    modifier: Modifier = Modifier,
     contentScale: ContentScale,
     onContentScaleChanged: (ContentScale) -> Unit
 ) {
@@ -34,12 +33,13 @@ fun ContentScaleSelectionMenu(
     }
 
     Row(
-        modifier = Modifier.padding(2.dp),
         verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(2.dp)
     ) {
         ExposedSelectionMenu(
-            modifier = modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             index = index,
             title = "ContentScale",
             options = contentScaleOptions,
@@ -61,7 +61,7 @@ fun ContentScaleSelectionMenu(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExposedSelectionMenu(
     modifier: Modifier = Modifier,
@@ -72,15 +72,10 @@ fun ExposedSelectionMenu(
         fontSize = 14.sp
     ),
     colors: TextFieldColors = ExposedDropdownMenuDefaults.textFieldColors(
-        backgroundColor = Color.Transparent,
+        containerColor = Color.Transparent,
         focusedIndicatorColor = Color.Transparent,
         unfocusedIndicatorColor = Color.Transparent,
-        disabledIndicatorColor = Color.Transparent,
-        focusedLabelColor = Color.DarkGray,
-        unfocusedLabelColor = Color.DarkGray,
-        trailingIconColor = Color.DarkGray,
-        focusedTrailingIconColor = Color.DarkGray,
-        textColor = Color.DarkGray,
+        disabledIndicatorColor = Color.Transparent
     ),
     options: List<String>,
     onSelected: (Int) -> Unit
@@ -127,10 +122,11 @@ fun ExposedSelectionMenu(
                         selectedOptionText = selectionOption
                         expanded = false
                         onSelected(index)
+                    },
+                    text = {
+                        Text(text = selectionOption)
                     }
-                ) {
-                    Text(text = selectionOption)
-                }
+                )
             }
         }
     }
