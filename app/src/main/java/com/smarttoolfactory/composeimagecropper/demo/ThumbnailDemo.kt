@@ -230,7 +230,7 @@ private fun ThumbnailPositionChangeSample(
             imageBitmap = imageBitmap,
             modifier = modifier,
             contentDescription = null,
-            moveableThumbnail = false
+            dynamicPosition = false
         )
 
     }

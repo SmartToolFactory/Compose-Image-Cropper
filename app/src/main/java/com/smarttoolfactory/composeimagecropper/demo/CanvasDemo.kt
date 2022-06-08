@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
@@ -59,6 +60,15 @@ fun CanvasDemo() {
         Spacer(modifier = Modifier.height(50.dp))
         Text("Compose Canvas BlendMode Clear")
         ComposeCanvasSample(
+            imageBitmap = dstBitmap,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(4 / 3f)
+        )
+
+        Spacer(modifier = Modifier.height(50.dp))
+        Text("Compose Canvas Path + BlendMode Clear")
+        ComposeCanvasSample2(
             imageBitmap = dstBitmap,
             modifier = Modifier
                 .fillMaxWidth()
@@ -311,6 +321,97 @@ fun ComposeCanvasSample(modifier: Modifier, imageBitmap: ImageBitmap) {
                 )
                 restoreToCount(checkPoint)
             }
+        }
+    }
+}
+
+@Composable
+fun ComposeCanvasSample2(modifier: Modifier, imageBitmap: ImageBitmap) {
+
+    val path = remember {
+        Path()
+    }
+
+    BoxWithConstraints(modifier) {
+        val dstBitmap = imageBitmap
+
+        val imageWidth = constraints.maxWidth
+        val imageHeight = constraints.maxHeight
+
+        val bitmapWidth = imageBitmap.width
+        val bitmapHeight = imageBitmap.height
+
+        var offset by remember {
+            mutableStateOf(Offset(bitmapWidth / 2f, bitmapHeight / 2f))
+        }
+
+        val canvasModifier = Modifier.pointerMotionEvents(
+            Unit,
+            onDown = {
+                val position = it.position
+                val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
+                val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
+                offset = Offset(offsetX,offsetY)
+                path.moveTo(offset.x, offset.y)
+                it.consume()
+            },
+            onMove = {
+                val position = it.position
+                val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
+                val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
+                offset = Offset(offsetX,offsetY)
+                path.lineTo(offset.x, offset.y)
+                it.consume()
+            },
+            onUp = {
+                val position = it.position
+                val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
+                val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
+                offset = Offset(offsetX,offsetY)
+                path.lineTo(offset.x, offset.y)
+                path.close()
+            },
+            delayAfterDownInMillis = 20
+        )
+
+        println("⛺️ canvasModifier: $canvasModifier, offset: $offset")
+
+        Canvas(modifier = canvasModifier.fillMaxSize()) {
+            val canvasWidth = size.width.roundToInt()
+            val canvasHeight = size.height.roundToInt()
+
+            drawImage(
+                image = dstBitmap,
+                srcSize = IntSize(dstBitmap.width, dstBitmap.height),
+                dstSize = IntSize(canvasWidth, canvasHeight)
+            )
+
+
+            with(drawContext.canvas.nativeCanvas) {
+                val checkPoint = saveLayer(null, null)
+
+                // Destination
+                drawRect(Color(0x55000000))
+
+                // Source
+//                drawCircle(
+//                    center = offset,
+//                    color = Color.Blue,
+//                    radius = canvasHeight.coerceAtMost(canvasWidth) / 8f,
+//                    blendMode = BlendMode.Clear
+//                )
+
+                drawPath(
+                    color = Color.Green,
+                    path = path,
+//                    style = Stroke(width = 1.dp.toPx()),
+                    blendMode = BlendMode.Clear
+                )
+                restoreToCount(checkPoint)
+            }
+
+
+
         }
     }
 }

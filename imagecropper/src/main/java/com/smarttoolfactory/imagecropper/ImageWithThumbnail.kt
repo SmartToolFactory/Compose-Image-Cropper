@@ -24,7 +24,7 @@ import kotlin.math.sqrt
 
 /**
  * [ImageWithConstraints] with [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
- * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
+ * by [thumbnailPosition]. When touch position is close to thumbnail position if [dynamicPosition]
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
  * @param imageBitmap The [ImageBitmap] to draw
@@ -41,7 +41,7 @@ import kotlin.math.sqrt
  * sampling algorithm
  * @param thumbnailSize size of the thumbnail
  * @param thumbnailPosition position of the thumbnail. It's top left corner by default
- * @param moveableThumbnail flag that changes mobility of thumbnail when user touch is
+ * @param dynamicPosition flag that changes mobility of thumbnail when user touch is
  * in proximity of the thumbnail
  * @param moveTo corner to move thumbnail if user touch is in proximity of the thumbnail. By default
  * it's top right corner.
@@ -69,7 +69,7 @@ fun ImageWithThumbnail(
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
-    moveableThumbnail: Boolean = true,
+    dynamicPosition: Boolean = true,
     moveTo: ThumbnailPosition = ThumbnailPosition.TopRight,
     @IntRange(from = 100, to = 500) thumbnailZoom: Int = 200,
     onDown: ((Offset) -> Unit)? = null,
@@ -139,7 +139,7 @@ fun ImageWithThumbnail(
             thumbnailSize = thumbnailSize,
             thumbnailZoom = thumbnailZoom,
             thumbnailPosition = thumbnailPosition,
-            moveableThumbnail = moveableThumbnail,
+            dynamicPosition = dynamicPosition,
             moveTo = moveTo,
             offset = offset,
             onThumbnailCenterChange = onThumbnailCenterChange
@@ -156,7 +156,7 @@ fun ImageWithThumbnail(
 
 /**
  * [ThumbnailLayout] displays thumbnail of bitmap it draws in corner specified
- * by [thumbnailPosition]. When touch position is close to thumbnail position if [moveableThumbnail]
+ * by [thumbnailPosition]. When touch position is close to thumbnail position if [dynamicPosition]
  * is set to true moves thumbnail to corner specified by [moveTo]
  *
  * @param imageBitmap The [ImageBitmap] to draw
@@ -164,7 +164,7 @@ fun ImageWithThumbnail(
  * sampling algorithm
  * @param thumbnailSize size of the thumbnail
  * @param thumbnailPosition position of the thumbnail. It's top left corner by default
- * @param moveableThumbnail flag that changes mobility of thumbnail when user touch is
+ * @param dynamicPosition flag that changes mobility of thumbnail when user touch is
  * in proximity of the thumbnail
  * @param moveTo corner to move thumbnail if user touch is in proximity of the thumbnail. By default
  * it's top right corner.
@@ -178,7 +178,7 @@ fun ThumbnailLayout(
     imageBitmap: ImageBitmap,
     thumbnailSize: Dp = 80.dp,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
-    moveableThumbnail: Boolean = true,
+    dynamicPosition: Boolean = true,
     moveTo: ThumbnailPosition = ThumbnailPosition.TopRight,
     @IntRange(from = 100, to = 500) thumbnailZoom: Int = 200,
     offset: Offset,
@@ -190,7 +190,7 @@ fun ThumbnailLayout(
         thumbnailSize = thumbnailSize,
         thumbnailZoom = thumbnailZoom,
         thumbnailPosition = thumbnailPosition,
-        moveableThumbnail = moveableThumbnail,
+        dynamicPosition = dynamicPosition,
         moveTo = moveTo,
         offset = offset,
         onThumbnailCenterChange = onThumbnailCenterChange
@@ -204,7 +204,7 @@ private fun ThumbnailLayoutImpl(
     thumbnailSize: Dp,
     thumbnailZoom: Int = 200,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
-    moveableThumbnail: Boolean = true,
+    dynamicPosition: Boolean = true,
     moveTo: ThumbnailPosition = ThumbnailPosition.TopRight,
     offset: Offset,
     onThumbnailCenterChange: ((Offset) -> Unit)? = null
@@ -226,7 +226,7 @@ private fun ThumbnailLayoutImpl(
             canvasHeight = canvasHeight,
             imageThumbnailSize = imageThumbnailSize,
             thumbnailPosition = thumbnailPosition,
-            moveableThumbnail = moveableThumbnail,
+            dynamicPosition = dynamicPosition,
             moveTo = moveTo
         )
 
@@ -293,7 +293,7 @@ private fun getThumbnailPositionOffset(
     canvasWidth: Float,
     canvasHeight: Float,
     thumbnailPosition: ThumbnailPosition = ThumbnailPosition.TopLeft,
-    moveableThumbnail: Boolean = true,
+    dynamicPosition: Boolean = true,
     moveTo: ThumbnailPosition = ThumbnailPosition.TopRight,
     imageThumbnailSize: Int
 ): IntOffset {
@@ -306,7 +306,7 @@ private fun getThumbnailPositionOffset(
     )
 
     if (offset.isUnspecified || !offset.isFinite) return thumbnailOffset
-    if (!moveableThumbnail || thumbnailPosition == moveTo) return thumbnailOffset
+    if (!dynamicPosition || thumbnailPosition == moveTo) return thumbnailOffset
 
     val offsetX = offset.x
         .coerceIn(0f, canvasWidth)

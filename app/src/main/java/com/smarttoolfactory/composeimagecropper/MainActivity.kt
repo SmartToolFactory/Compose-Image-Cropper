@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalPagerApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package com.smarttoolfactory.composeimagecropper
 
@@ -7,22 +7,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import com.smarttoolfactory.composeimagecropper.demo.CanvasDemo
+import com.smarttoolfactory.composeimagecropper.demo.ImageCropDemo
 import com.smarttoolfactory.composeimagecropper.demo.ImageScaleDemo
 import com.smarttoolfactory.composeimagecropper.demo.ThumbnailDemo
 import com.smarttoolfactory.composeimagecropper.ui.theme.ComposeImageCropperTheme
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalPagerApi::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +34,7 @@ class MainActivity : ComponentActivity() {
             ComposeImageCropperTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    color = MaterialTheme.colors.background
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         HomeContent()
@@ -49,45 +53,59 @@ private fun HomeContent() {
 
     val coroutineScope = rememberCoroutineScope()
 
-    ScrollableTabRow(
-        backgroundColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-        contentColor = Color.White,
-        edgePadding = 8.dp,
-        // Our selected tab is our current page
-        selectedTabIndex = pagerState.currentPage,
-        // Override the indicator, using the provided pagerTabIndicatorOffset modifier
-        indicator = {}
-    ) {
-        // Add tabs for all of our pages
-        tabList.forEachIndexed { index, title ->
-            Tab(
-                text = { Text(title) },
-                selected = pagerState.currentPage == index,
-                onClick = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(index)
-                    }
+    Scaffold(
+        topBar = {
+            ScrollableTabRow(
+                modifier = Modifier.fillMaxWidth(),
+                // Our selected tab is our current page
+                selectedTabIndex = pagerState.currentPage,
+                // Override the indicator, using the provided pagerTabIndicatorOffset modifier
+                indicator = { tabPositions: List<TabPosition> ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier.tabIndicatorOffset(
+                            tabPositions[pagerState.currentPage]
+                        ),
+                        height = 4.dp
+                    )
+                },
+                edgePadding = 4.dp
+            ) {
+                // Add tabs for all of our pages
+                tabList.forEachIndexed { index, title ->
+                    Tab(
+                        text = { Text(title) },
+                        selected = pagerState.currentPage == index,
+                        onClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        }
+                    )
                 }
-            )
+            }
         }
-    }
+    ) {
 
-    HorizontalPager(
-        state = pagerState,
-        count = tabList.size
-    ) { page: Int ->
+        HorizontalPager(
+            modifier = Modifier.padding(it),
+            state = pagerState,
+            count = tabList.size
+        ) { page: Int ->
 
-        when (page) {
+            when (page) {
 
-            0 -> ImageScaleDemo()
-            1 -> ThumbnailDemo()
-            else -> CanvasDemo()
+                0 -> ImageCropDemo()
+                1 -> ImageScaleDemo()
+                2 -> ThumbnailDemo()
+                else -> CanvasDemo()
+            }
         }
     }
 }
 
 internal val tabList =
     listOf(
+        "Image Cropping",
         "Images Scaling",
         "Image Thumbnail",
         "Native and Compose Canvas",
