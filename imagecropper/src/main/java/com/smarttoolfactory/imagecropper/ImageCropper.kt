@@ -1,10 +1,13 @@
 package com.smarttoolfactory.imagecropper
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,8 +35,11 @@ fun ImageCropper(
     contentDescription: String?,
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
-    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality
+    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
+    crop: Boolean = false,
+    onCropSuccess: (ImageBitmap) -> Unit
 ) {
+
     ImageWithConstraints(
         modifier = modifier,
         contentScale = contentScale,
@@ -50,6 +56,11 @@ fun ImageCropper(
         // bitmap
         val scaledImageBitmap = getScaledImageBitmap(imageBitmap, contentScale)
 
+        println("")
+
+        val bitmapWidth = scaledImageBitmap.width
+        val bitmapHeight = scaledImageBitmap.height
+
         val imageWidthInPx: Float
         val imageHeightInPx: Float
         with(LocalDensity.current) {
@@ -57,24 +68,62 @@ fun ImageCropper(
             imageHeightInPx = imageHeight.toPx()
         }
 
-        var cropRect by remember {
+
+        var cropRect by remember(scaledImageBitmap) {
             mutableStateOf(
-//                Rect(
-//                    offset = Offset.Zero,
-//                    size = Size(imageWidthInPx / 2f, imageHeightInPx / 2f)
-//                )
+                Rect(
+                    offset = Offset.Zero,
+                    size = Size(
+                        bitmapWidth.toFloat(),
+                        bitmapHeight.toFloat()
+                    )
+                )
+            )
+        }
+
+        var drawRect by remember(scaledImageBitmap, imageWidthInPx, imageHeightInPx, contentScale) {
+            mutableStateOf(
                 Rect(
                     offset = Offset.Zero,
                     size = Size(imageWidthInPx, imageHeightInPx)
                 )
             )
         }
-        val cropPath = remember { Path() }
 
-        var zoom by remember { mutableStateOf(1f) }
-        var offset by remember { mutableStateOf(Offset.Zero) }
-        var angle by remember { mutableStateOf(0f) }
-        var isInBounds by remember { mutableStateOf(false) }
+        var zoom by remember(
+            scaledImageBitmap,
+            imageWidthInPx,
+            imageHeightInPx,
+            contentScale
+        ) { mutableStateOf(1f) }
+
+        var offset by remember(
+            scaledImageBitmap,
+            imageWidthInPx,
+            imageHeightInPx,
+            contentScale
+        ) { mutableStateOf(Offset.Zero) }
+
+        var angle by remember(
+            scaledImageBitmap,
+            imageWidthInPx,
+            imageHeightInPx,
+            contentScale
+        ) { mutableStateOf(0f) }
+
+        LaunchedEffect(crop) {
+            if (crop) {
+                val croppedBitmap = Bitmap.createBitmap(
+                    scaledImageBitmap.asAndroidBitmap(),
+                    cropRect.left.toInt(),
+                    cropRect.top.toInt(),
+                    cropRect.width.toInt(),
+                    cropRect.height.toInt()
+                ).asImageBitmap()
+
+                onCropSuccess(croppedBitmap)
+            }
+        }
 
         val imageModifier =
             Modifier
@@ -95,7 +144,7 @@ fun ImageCropper(
         val drawingModifier = Modifier
             .fillMaxSize()
             .border(6.dp, Color.Black)
-            .pointerInput(Unit) {
+            .pointerInput(scaledImageBitmap, imageWidthInPx, imageHeightInPx, contentScale) {
                 detectTransformGestures(
                     onGesture = { gestureCentroid, gesturePan, gestureZoom, gestureRotate ->
 
@@ -105,39 +154,53 @@ fun ImageCropper(
                             (offset + gestureCentroid / oldScale).rotateBy(gestureRotate) -
                                     (gestureCentroid / newScale + gesturePan / oldScale)
 
+                        // TODO instead of coercing offset in image, let it animate back to
+                        //  valid bounds after up motion in next iteration
                         val offsetX = (newOffset.x)
-//                            .coerceIn(0f, imageWidthInPx)
+                            .coerceIn(0f, imageWidthInPx - imageWidthInPx / zoom)
                         val offsetY = (newOffset.y)
-//                            .coerceIn(0f, imageHeightInPx)
+                            .coerceIn(0f, imageHeightInPx - imageHeightInPx / zoom)
 
                         offset = Offset(offsetX, offsetY)
 
+                        val offsetXInBitmap = offsetX * bitmapWidth / imageWidthInPx
+                        val offsetYInBitmap = offsetY * bitmapHeight / imageHeightInPx
 
-//                        cropRect = Rect(
-//                            offset = offset,
-//                            size = Size(imageWidthInPx / 2f, imageHeightInPx / 2f)
-//                        )
+                        cropRect = Rect(
+                            topLeft = Offset(offsetXInBitmap, offsetYInBitmap),
+                            bottomRight = Offset(
+                                offsetXInBitmap + bitmapWidth / zoom,
+                                offsetYInBitmap + bitmapHeight / zoom
+                            )
+                        )
 
                         zoom = newScale.coerceIn(1f..10f)
-//                            zoom = newScale
                         angle += gestureRotate
-                        println(
-                            "🔥 IMAGE MODIFIER: $offset, zoom: $zoom, " +
-                                    "translationX: ${-offset.x * zoom}, translationY: ${-offset.y * zoom}"
-                        )
 
                     }
                 )
             }
 
 
-        CropperImpl(
-            modifier = Modifier.size(imageWidth, imageHeight),
-            imageOverlayModifier = imageModifier,
-            imageDrawingModifier = drawingModifier,
-            imageBitmap = scaledImageBitmap,
-            rect = cropRect
-        )
+        Column {
+            CropperImpl(
+                modifier = Modifier.size(imageWidth, imageHeight),
+                imageOverlayModifier = imageModifier,
+                imageDrawingModifier = drawingModifier,
+                imageBitmap = scaledImageBitmap,
+                rect = drawRect
+            )
+
+            Text(
+                "Zoom: $zoom\n" +
+                        "imageWidthInPx: $imageWidthInPx, imageHeightInPx: $imageHeightInPx\n" +
+                        "translationX: ${-offset.x * zoom}, translationY: ${-offset.y * zoom}\n" +
+                        "offset: $offset\n" +
+                        "scaledWidth: ${imageHeightInPx / zoom}, scaledHeight: ${imageHeightInPx / zoom}\n" +
+                        "cropRect: $cropRect\n" +
+                        "drawRect: $drawRect"
+            )
+        }
     }
 }
 
