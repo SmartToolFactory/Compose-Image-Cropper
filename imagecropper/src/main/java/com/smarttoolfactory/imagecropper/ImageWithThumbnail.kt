@@ -1,6 +1,5 @@
 package com.smarttoolfactory.imagecropper
 
-import android.graphics.Bitmap
 import androidx.annotation.IntRange
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -261,31 +260,6 @@ private fun ThumbnailLayoutImpl(
             dstSize = IntSize(imageThumbnailSize, imageThumbnailSize)
         )
     }
-}
-
-@Composable
-internal fun ImageScope.getScaledImageBitmap(
-    bitmap: ImageBitmap,
-    contentScale: ContentScale
-): ImageBitmap {
-    val scaledBitmap =
-
-        remember(bitmap, rect, imageWidth, imageHeight, contentScale) {
-            // This bitmap is needed when we crop original bitmap due to scaling mode
-            // and aspect ratio result of cropping
-            // We might have center section of the image after cropping, and
-            // because of that thumbLayout either should have rectangle and some
-            // complex calculation for srcOffset and srcSide along side with touch offset
-            // or we can create a new bitmap that only contains area bounded by rectangle
-            Bitmap.createBitmap(
-                bitmap.asAndroidBitmap(),
-                rect.left,
-                rect.top,
-                rect.width,
-                rect.height
-            ).asImageBitmap()
-        }
-    return scaledBitmap
 }
 
 private fun getThumbnailPositionOffset(
