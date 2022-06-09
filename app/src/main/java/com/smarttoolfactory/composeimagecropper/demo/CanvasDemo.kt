@@ -89,7 +89,7 @@ fun NativeCanvasSample1(imageBitmap: ImageBitmap, modifier: Modifier) {
         val bitmapHeight = imageBitmap.height
 
 
-        val canvas: androidx.compose.ui.graphics.Canvas = Canvas(imageBitmap)
+        val canvas: Canvas = Canvas(imageBitmap)
 
         val imagePaint = remember {
             Paint().apply {
@@ -139,7 +139,7 @@ fun NativeCanvasSample1(imageBitmap: ImageBitmap, modifier: Modifier) {
     }
 }
 
-// FIXME This one does not refresh correctly as i asked on Stackoverflow
+// FIXME This one does not refresh correctly, here is the question i asked on Stackoverflow
 // https://stackoverflow.com/questions/72168588/jetpack-compose-androidx-compose-ui-graphics-canvas-not-refreshing-correctly-for
 @Composable
 fun NativeCanvasSample2(imageBitmap: ImageBitmap, modifier: Modifier) {
@@ -177,7 +177,7 @@ fun NativeCanvasSample2(imageBitmap: ImageBitmap, modifier: Modifier) {
             delayAfterDownInMillis = 20
         )
 
-        val canvas: androidx.compose.ui.graphics.Canvas = Canvas(imageBitmap)
+        val canvas: Canvas = Canvas(imageBitmap)
 
 
         val paintBg = remember {
@@ -351,7 +351,7 @@ fun ComposeCanvasSample2(modifier: Modifier, imageBitmap: ImageBitmap) {
                 val position = it.position
                 val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
                 val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
-                offset = Offset(offsetX,offsetY)
+                offset = Offset(offsetX, offsetY)
                 path.moveTo(offset.x, offset.y)
                 it.consume()
             },
@@ -359,7 +359,7 @@ fun ComposeCanvasSample2(modifier: Modifier, imageBitmap: ImageBitmap) {
                 val position = it.position
                 val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
                 val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
-                offset = Offset(offsetX,offsetY)
+                offset = Offset(offsetX, offsetY)
                 path.lineTo(offset.x, offset.y)
                 it.consume()
             },
@@ -367,7 +367,7 @@ fun ComposeCanvasSample2(modifier: Modifier, imageBitmap: ImageBitmap) {
                 val position = it.position
                 val offsetX = (position.x).coerceIn(0f, imageWidth.toFloat())
                 val offsetY = (position.y).coerceIn(0f, imageHeight.toFloat())
-                offset = Offset(offsetX,offsetY)
+                offset = Offset(offsetX, offsetY)
                 path.lineTo(offset.x, offset.y)
                 path.close()
             },
@@ -409,7 +409,6 @@ fun ComposeCanvasSample2(modifier: Modifier, imageBitmap: ImageBitmap) {
                 )
                 restoreToCount(checkPoint)
             }
-
 
 
         }

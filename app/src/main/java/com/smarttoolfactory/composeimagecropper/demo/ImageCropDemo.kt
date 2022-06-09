@@ -2,7 +2,6 @@
 
 package com.smarttoolfactory.composeimagecropper.demo
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,9 +29,8 @@ import com.smarttoolfactory.composeimagecropper.ImageSelectionButton
 import com.smarttoolfactory.composeimagecropper.R
 import com.smarttoolfactory.imagecropper.ImageCropper
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButton
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import com.smarttoolfactory.imagecropper.ImageWithConstraints
 import kotlinx.coroutines.launch
 
@@ -171,6 +169,7 @@ private fun MainContent(bottomSheetScaffoldState: BottomSheetScaffoldState) {
             },
             floatingActionButton = {
                 ImageSelectionButton(
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
                     onImageSelected = { bitmap: ImageBitmap ->
                         imageBitmap = bitmap
                     }
