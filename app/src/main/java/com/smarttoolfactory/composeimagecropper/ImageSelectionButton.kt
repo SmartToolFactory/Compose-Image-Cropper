@@ -7,17 +7,23 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.google.modernstorage.photopicker.PhotoPicker
 
 @SuppressLint("UnsafeOptInUsageError")
 @Composable
-fun ImageSelectionButton(onImageSelected: (ImageBitmap) -> Unit) {
+fun ImageSelectionButton(
+    onImageSelected: (ImageBitmap) -> Unit
+) {
     val context = LocalContext.current
 
     val photoPicker =
@@ -40,12 +46,13 @@ fun ImageSelectionButton(onImageSelected: (ImageBitmap) -> Unit) {
         }
 
     FloatingActionButton(
+        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
         onClick = {
             photoPicker.launch(PhotoPicker.Args(PhotoPicker.Type.IMAGES_ONLY, 1))
         },
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_baseline_add_a_photo_24),
+            imageVector = Icons.Default.Add,
             contentDescription = null
         )
     }
