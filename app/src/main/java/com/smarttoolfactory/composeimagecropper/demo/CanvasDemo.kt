@@ -9,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
@@ -18,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smarttoolfactory.composeimagecropper.R
 import com.smarttoolfactory.gesture.pointerMotionEvents
+import com.smarttoolfactory.imagecropper.createPolygonPath
 import kotlin.math.roundToInt
 
 @Composable
@@ -33,17 +33,21 @@ fun CanvasDemo() {
             R.drawable.landscape1
         ).asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, true).asImageBitmap()
 
+
         val imageBitmap2 = ImageBitmap.imageResource(
             LocalContext.current.resources,
             R.drawable.landscape1
         ).asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, true).asImageBitmap()
+
+        val aspectRatio1 = imageBitmap1.width / imageBitmap1.height.toFloat()
+        val aspectRatio2 = imageBitmap2.width / imageBitmap2.height.toFloat()
 
         Text("Native Canvas Clipping")
         NativeCanvasSample1(
             imageBitmap = imageBitmap1,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(4 / 3f)
+                .aspectRatio(aspectRatio1)
         )
 
         Spacer(modifier = Modifier.height(50.dp))
@@ -52,10 +56,11 @@ fun CanvasDemo() {
             imageBitmap = imageBitmap2,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(4 / 3f)
+                .aspectRatio(aspectRatio2)
         )
 
         val dstBitmap = ImageBitmap.imageResource(id = R.drawable.landscape1)
+        val aspectRatioDst = dstBitmap.width / dstBitmap.height.toFloat()
 
         Spacer(modifier = Modifier.height(50.dp))
         Text("Compose Canvas BlendMode Clear")
@@ -63,7 +68,7 @@ fun CanvasDemo() {
             imageBitmap = dstBitmap,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(4 / 3f)
+                .aspectRatio(aspectRatioDst)
         )
 
         Spacer(modifier = Modifier.height(50.dp))
@@ -72,7 +77,7 @@ fun CanvasDemo() {
             imageBitmap = dstBitmap,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(4 / 3f)
+                .aspectRatio(aspectRatioDst)
         )
     }
 }
@@ -98,12 +103,10 @@ fun NativeCanvasSample1(imageBitmap: ImageBitmap, modifier: Modifier) {
         }
 
         val paint = remember {
-            Paint().apply {
-                color = Color(0xff29B6F6)
-            }
+            Paint()
         }
 
-        canvas.apply {
+        canvas.run {
             val nativeCanvas = this.nativeCanvas
             val canvasWidth = nativeCanvas.width.toFloat()
             val canvasHeight = nativeCanvas.height.toFloat()
@@ -116,15 +119,23 @@ fun NativeCanvasSample1(imageBitmap: ImageBitmap, modifier: Modifier) {
             )
             saveLayer(nativeCanvas.clipBounds.toComposeRect(), imagePaint)
 
-            drawCircle(
-                center = Offset(canvasWidth / 2, canvasHeight / 2),
-                radius = canvasHeight / 2,
-                paint = paint
+            val polyPath = createPolygonPath(
+                cx = canvasWidth / 2,
+                cy = canvasHeight / 2,
+                sides = 8,
+                radius = canvasHeight.coerceAtMost(canvasWidth) / 2
             )
+
+            drawPath(polyPath, paint)
+
+//            drawCircle(
+//                center = Offset(canvasWidth / 2, canvasHeight / 2),
+//                radius = canvasHeight.coerceAtMost(canvasWidth) / 2,
+//                paint = paint
+//            )
+
             drawImage(image = imageBitmap, topLeftOffset = Offset.Zero, imagePaint)
             restore()
-
-
         }
 
         Image(

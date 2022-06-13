@@ -75,6 +75,9 @@ dependencies {
     // Jetpack Compose
     implementation "androidx.compose.material3:material3:1.0.0-alpha13"
 
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.1.0")
+
     def accompanist_version = "0.24.9-beta"
     // Accompanist
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
