@@ -22,7 +22,7 @@ import kotlin.math.sqrt
 
 
 @Composable
-fun EditBox(
+fun ScaleEditBox(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onTextChange: (String) -> Unit,
@@ -117,6 +117,12 @@ fun EditBox(
 
                     drawCircle(color = Color.Cyan, radius = 15f, center = positionRaw)
                     drawCircle(color = Color.Magenta, radius = 15f, center = positionScaled)
+                    drawCircle(
+                        color = Color.Green, radius = 15f, center = Offset(
+                            -(rectDraw.width - rectBounds.width) / 2f,
+                            -(rectDraw.height - rectBounds.height) / 2f,
+                        )
+                    )
 
                 }
             }
@@ -125,185 +131,147 @@ fun EditBox(
                 translationY = yTranslation
                 scaleX = xScale
                 scaleY = yScale
-                transformOrigin = TransformOrigin(0f, 0f)
+//                transformOrigin = TransformOrigin(0f, 0f)
             }
 
-            .pointerMotionEvents(Unit,
-                onDown = { change: PointerInputChange ->
+            .pointerMotionEvents(Unit, onDown = { change: PointerInputChange ->
 
-                    rectTemp = rectDraw.copy()
+                rectTemp = rectDraw.copy()
 
-                    positionRaw = change.position
+                positionRaw = change.position
 
-                    val scaledX =
-                        rectDraw.left + positionRaw.x * rectDraw.width / rectBounds.width
-                    val scaledY =
-                        rectDraw.top + positionRaw.y * rectDraw.height / rectBounds.height
+                val scaledX = rectDraw.left + positionRaw.x * rectDraw.width / rectBounds.width
+                val scaledY = rectDraw.top + positionRaw.y * rectDraw.height / rectBounds.height
 
-                    positionScaled = Offset(scaledX, scaledY)
+                positionScaled = Offset(scaledX, scaledY)
 
-                    val translatedRect = Rect(offset = Offset.Zero, size = rectTemp.size)
+                val translatedRect = Rect(offset = Offset.Zero, size = rectTemp.size)
 
-                    touchRegion = getTouchRegion(
-                        position = positionScaled,
-                        rect = rectDraw,
-                        threshold = touchRegionWidth * 4
+                touchRegion = getTouchRegion(
+                    position = positionScaled, rect = rectDraw, threshold = touchRegionWidth * 4
+                )
+
+                println("✊ onDown() positionRaw: $positionRaw, touchRegion: $touchRegion, translatedRect: $translatedRect")
+
+                onTextChange(
+                    "✊ onDown() region: $touchRegion\n" + "positionRaw: $positionRaw\n" + "positionChange: ${change.positionChange()}\n" + "positionInParent: $positionInParent\n" + "size: $size\n" + "RECT translatedRect: $translatedRect\n" + "RECT DRAW: $rectDraw\n" + "width: ${rectDraw.width}, height: ${rectDraw.height}\n" + "RECT TEMP: $rectTemp\n" + " width: ${rectTemp.width.toInt()}, height: ${rectTemp.height.toInt()}\n" + "xScale: $xScale, yScale: $yScale\n" + "xTranslation: $xTranslation, yTranslation: $yTranslation\n\n"
+                )
+
+                Toast
+                    .makeText(
+                        context, "Clicked position: ${change.position}", Toast.LENGTH_SHORT
                     )
+                    .show()
 
-                    println("✊ onDown() positionRaw: $positionRaw, touchRegion: $touchRegion, translatedRect: $translatedRect")
+            }, onMove = { change: PointerInputChange ->
 
-                    onTextChange(
-                        "✊ onDown() region: $touchRegion\n" +
-                                "positionRaw: $positionRaw\n" +
-                                "positionChange: ${change.positionChange()}\n" +
-                                "positionInParent: $positionInParent\n" +
-                                "size: $size\n" +
-                                "RECT translatedRect: $translatedRect\n" +
-                                "RECT DRAW: $rectDraw\n" +
-                                "width: ${rectDraw.width}, height: ${rectDraw.height}\n" +
-                                "RECT TEMP: $rectTemp\n" +
-                                " width: ${rectTemp.width.toInt()}, height: ${rectTemp.height.toInt()}\n" +
-                                "xScale: $xScale, yScale: $yScale\n" +
-                                "xTranslation: $xTranslation, yTranslation: $yTranslation\n\n"
-                    )
+                val position = change.position
+                positionRaw = position
+                val scaledX = rectDraw.left + position.x * rectDraw.width / rectBounds.width
+                val scaledY = rectDraw.top + position.y * rectDraw.height / rectBounds.height
+                positionScaled = Offset(scaledX, scaledY)
 
-                    Toast
-                        .makeText(
-                            context,
-                            "Clicked position: ${change.position}",
-                            Toast.LENGTH_SHORT
+
+                when (touchRegion) {
+                    TouchRegion.TopLeft -> {
+
+                        rectDraw = Rect(
+                            left = scaledX,
+                            top = scaledY,
+                            right = rectTemp.right,
+                            bottom = rectTemp.bottom,
                         )
-                        .show()
 
-                },
-                onMove = { change: PointerInputChange ->
+                        xScale = rectDraw.width / rectBounds.width
+                        yScale = rectDraw.height / rectBounds.height
 
-                    val position = change.position
-                    positionRaw = position
-                    val scaledX = rectDraw.left + position.x * rectDraw.width / rectBounds.width
-                    val scaledY = rectDraw.top + position.y * rectDraw.height / rectBounds.height
-                    positionScaled = Offset(scaledX, scaledY)
+                        xTranslation = scaledX + (rectDraw.width - rectBounds.width) / 2
+                        yTranslation = scaledY + (rectDraw.height - rectBounds.height) / 2
 
-                    when (touchRegion) {
-                        TouchRegion.TopLeft -> {
-
-                            rectDraw = Rect(
-                                left = scaledX,
-                                top = scaledY,
-                                right = rectTemp.right,
-                                bottom = rectTemp.bottom,
-                            )
-
-                            xScale = rectDraw.width / rectBounds.width
-                            yScale = rectDraw.height / rectBounds.height
-                            xTranslation = scaledX / 1f
-                            yTranslation = scaledY / 1f
-
-                        }
-
-                        TouchRegion.BottomLeft -> {
-
-                            rectDraw = Rect(
-                                left = scaledX,
-                                top = rectTemp.top,
-                                right = rectTemp.right,
-                                bottom = scaledY,
-                            )
-
-                            xScale = rectDraw.width / rectBounds.width
-                            yScale = rectDraw.height / rectBounds.height
-                            xTranslation = scaledX / 1f
-                            yTranslation = scaledY / 1f - rectDraw.height
-
-
-                        }
-
-                        TouchRegion.TopRight -> {
-                            rectDraw = Rect(
-                                left = rectTemp.left,
-                                top = scaledY,
-                                right = scaledX,
-                                bottom = rectTemp.bottom,
-                            )
-
-                            xScale = rectDraw.width / rectBounds.width
-                            yScale = rectDraw.height / rectBounds.height
-
-                            xTranslation = scaledX / 1f - rectDraw.width
-                            yTranslation = scaledY / 1f
-                        }
-
-                        TouchRegion.BottomRight -> {
-                            rectDraw = Rect(
-                                left = rectTemp.left,
-                                top = rectTemp.top,
-                                right = scaledX,
-                                bottom = scaledY,
-                            )
-
-                            xScale = rectDraw.width / rectBounds.width
-                            yScale = rectDraw.height / rectBounds.height
-
-                            xTranslation = scaledX / 1f - rectDraw.width
-                            yTranslation = scaledY / 1f - rectDraw.height
-                        }
-
-                        TouchRegion.Inside -> {
-                            val drag = change.positionChange()
-
-                            val scaledDragX = drag.x * rectDraw.width / rectBounds.width
-                            val scaledDragY = drag.y * rectDraw.height / rectBounds.height
-
-                            xTranslation += scaledDragX
-                            yTranslation += scaledDragY
-                            rectDraw = rectDraw.translate(scaledDragX, scaledDragY)
-                        }
-
-                        else -> Unit
                     }
 
-                    if (touchRegion != TouchRegion.None) {
-                        change.consume()
+                    TouchRegion.BottomLeft -> {
+
+                        rectDraw = Rect(
+                            left = scaledX,
+                            top = rectTemp.top,
+                            right = rectTemp.right,
+                            bottom = scaledY,
+                        )
+
+                        xScale = rectDraw.width / rectBounds.width
+                        yScale = rectDraw.height / rectBounds.height
+
+                        xTranslation = scaledX + (rectDraw.width - rectBounds.width) / 2
+                        yTranslation =
+                            scaledY - rectDraw.height + (rectDraw.height - rectBounds.height) / 2
                     }
 
-                    onTextChange(
-                        "🚀 onMove() region: $touchRegion\n" +
-                                "position: $position\n" +
-                                "scaledX: $scaledX, scaledY: $scaledY\n" +
-                                "positionChange: ${change.positionChange()}\n" +
-                                "positionScaled: $positionScaled\n" +
-                                "positionInParent: $positionInParent\n" +
-                                "RECT DRAW: $rectDraw\n" +
-                                "width: ${rectDraw.width}, height: ${rectDraw.height}\n" +
-                                "RECT TEMP: $rectTemp\n" +
-                                " width: ${rectTemp.width.toInt()}, height: ${rectTemp.height.toInt()}\n" +
-                                "xScale: $xScale, yScale: $yScale\n" +
-                                "xTranslation: $xTranslation, yTranslation: $yTranslation\n\n"
-                    )
+                    TouchRegion.TopRight -> {
+                        rectDraw = Rect(
+                            left = rectTemp.left,
+                            top = scaledY,
+                            right = scaledX,
+                            bottom = rectTemp.bottom,
+                        )
 
-                    println(
-                        "🚀 onMove() region: $touchRegion\n" +
-                                "position: $position\n" +
-                                "scaledX: $scaledX, scaledY: $scaledY\n" +
-                                "positionChange: ${change.positionChange()}\n" +
-                                "positionScaled: $positionScaled\n" +
-                                "positionInParent: $positionInParent\n" +
-                                "RECT DRAW: $rectDraw\n" +
-                                "width: ${rectDraw.width}, height: ${rectDraw.height}\n" +
-                                "RECT TEMP: $rectTemp\n" +
-                                " width: ${rectTemp.width.toInt()}, height: ${rectTemp.height.toInt()}\n" +
-                                "xScale: $xScale, yScale: $yScale\n" +
-                                "xTranslation: $xTranslation, yTranslation: $yTranslation\n\n"
-                    )
+                        xScale = rectDraw.width / rectBounds.width
+                        yScale = rectDraw.height / rectBounds.height
 
-                },
-                onUp = {
-                    touchRegion = TouchRegion.None
-                    rectTemp = rectDraw.copy()
+                        xTranslation =
+                            scaledX - rectDraw.width + (rectDraw.width - rectBounds.width) / 2
+                        yTranslation = scaledY + (rectDraw.height - rectBounds.height) / 2
+                    }
 
-                    println("😜 onUp() rectTemp: $rectTemp")
+                    TouchRegion.BottomRight -> {
+                        rectDraw = Rect(
+                            left = rectTemp.left,
+                            top = rectTemp.top,
+                            right = scaledX,
+                            bottom = scaledY,
+                        )
+
+                        xScale = rectDraw.width / rectBounds.width
+                        yScale = rectDraw.height / rectBounds.height
+
+                        xTranslation =
+                            scaledX - rectDraw.width + (rectDraw.width - rectBounds.width) / 2
+                        yTranslation =
+                            scaledY - rectDraw.height + (rectDraw.height - rectBounds.height) / 2
+                    }
+
+                    TouchRegion.Inside -> {
+                        val drag = change.positionChange()
+
+                        val scaledDragX = drag.x * rectDraw.width / rectBounds.width
+                        val scaledDragY = drag.y * rectDraw.height / rectBounds.height
+
+                        xTranslation += scaledDragX
+                        yTranslation += scaledDragY
+                        rectDraw = rectDraw.translate(scaledDragX, scaledDragY)
+                    }
+
+                    else -> Unit
                 }
-            )
+
+                if (touchRegion != TouchRegion.None) {
+                    change.consume()
+                }
+
+                onTextChange(
+                    "🚀 onMove() region: $touchRegion\n" + "position: $position\n" + "scaledX: $scaledX, scaledY: $scaledY\n" + "positionChange: ${change.positionChange()}\n" + "positionScaled: $positionScaled\n" + "positionInParent: $positionInParent\n" + "RECT DRAW: $rectDraw\n" + "width: ${rectDraw.width}, height: ${rectDraw.height}\n" + "RECT TEMP: $rectTemp\n" + " width: ${rectTemp.width.toInt()}, height: ${rectTemp.height.toInt()}\n" + "xScale: $xScale, yScale: $yScale\n" + "xTranslation: $xTranslation, yTranslation: $yTranslation\n\n"
+                )
+
+                println(
+                    "🚀 onMove() region: $touchRegion\n" + "position: $position\n" + "scaledX: $scaledX, scaledY: $scaledY\n" + "positionChange: ${change.positionChange()}\n" + "positionScaled: $positionScaled\n" + "positionInParent: $positionInParent\n" + "RECT DRAW: $rectDraw\n" + "width: ${rectDraw.width}, height: ${rectDraw.height}\n" + "RECT TEMP: $rectTemp\n" + " width: ${rectTemp.width.toInt()}, height: ${rectTemp.height.toInt()}\n" + "xScale: $xScale, yScale: $yScale\n" + "xTranslation: $xTranslation, yTranslation: $yTranslation\n\n"
+                )
+
+            }, onUp = {
+                touchRegion = TouchRegion.None
+                rectTemp = rectDraw.copy()
+
+                println("😜 onUp() rectTemp: $rectTemp")
+            })
         Box(
             editModifier
 
@@ -356,7 +324,6 @@ private fun inDistance(offset1: Offset, offset2: Offset, target: Float): Boolean
     val distance = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
     return distance < target
 }
-
 
 
 private fun DrawScope.drawBorderCircle(
