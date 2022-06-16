@@ -1,14 +1,9 @@
 package com.smarttoolfactory.imagecropper
 
 import android.widget.Toast
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -18,15 +13,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.debugInspectorInfo
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.smarttoolfactory.gesture.pointerMotionEvents
 import kotlin.math.sqrt
 
@@ -258,9 +248,18 @@ fun EditBox(
                             yTranslation = scaledY / 1f - rectDraw.height
                         }
 
-                        else -> {
+                        TouchRegion.Inside -> {
+                            val drag = change.positionChange()
 
+                            val scaledDragX = drag.x * rectDraw.width / rectBounds.width
+                            val scaledDragY = drag.y * rectDraw.height / rectBounds.height
+
+                            xTranslation += scaledDragX
+                            yTranslation += scaledDragY
+                            rectDraw = rectDraw.translate(scaledDragX, scaledDragY)
                         }
+
+                        else -> Unit
                     }
 
                     if (touchRegion != TouchRegion.None) {
