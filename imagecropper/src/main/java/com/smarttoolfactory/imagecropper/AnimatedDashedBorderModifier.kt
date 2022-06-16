@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -100,3 +101,90 @@ fun Modifier.drawAnimatedDashBorder(
         )
     }
 )
+
+/**
+ * Composed [Modifier] that draws animated dashed border with [Modifier.drawWithContent]
+ *
+ * @param width width of the border in dp
+ * @param rect that covers border we draw
+ * @param durationMillis duration of the animation spec
+ * @param intervals [FloatArray] with 2 elements that contain on(first), and off(second) interval
+ * @param animatedColor color that is animated with [InfiniteTransition]
+ * @param staticColor this color is drawn behind the [animatedColor] color to act as layout
+ * for animated color
+ */
+fun Modifier.drawAnimatedDashRectBorder(
+    width: Dp = 2.dp,
+    rect: Rect,
+    durationMillis: Int = 500,
+    intervals: FloatArray = floatArrayOf(20f, 20f),
+    animatedColor: Color = Color.Black,
+    staticColor: Color = Color.White
+
+) = composed(
+    inspectorInfo = debugInspectorInfo {
+        // name should match the name of the modifier
+        name = "drawAnimatedDashBorder"
+        // add name and value of each argument
+        properties["width"] = width
+        properties["rect"] = rect
+        properties["durationMillis"] = durationMillis
+        properties["intervals"] = intervals
+        properties["animatedColor"] = animatedColor
+        properties["staticColor"] = staticColor
+    },
+
+    factory = {
+
+        require(intervals.size == 2) {
+            "There should be on and off values in intervals array"
+        }
+
+        val transition: InfiniteTransition = rememberInfiniteTransition()
+
+        val phase by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = (4 * intervals.average()).toFloat(),
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = durationMillis,
+                    easing = LinearEasing
+                ),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+
+        val pathEffect = PathEffect.dashPathEffect(
+            intervals = intervals,
+            phase = phase
+        )
+        // add your modifier implementation here
+        this.then(
+            Modifier
+                .drawWithContent {
+
+                    drawRect(
+                        topLeft = rect.topLeft,
+                        size = rect.size,
+                        color = staticColor,
+                        style = Stroke(
+                            width = width.toPx()
+                        )
+                    )
+                    drawRect(
+                        topLeft = rect.topLeft,
+                        size = rect.size,
+                        color = animatedColor,
+                        style = Stroke(
+                            width = width.toPx(),
+                            pathEffect = pathEffect
+                        )
+                    )
+
+                    drawContent()
+                }
+        )
+    }
+)
+
+val blue = Color(0xff2196F3)
