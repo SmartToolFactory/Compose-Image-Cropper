@@ -71,18 +71,11 @@ fun ImageCropper(
         }
 
         /**
-         * Rectangle that cover whole Composable area
-         */
-        val boundsRect = remember {
-            Rect(offset = Offset.Zero, size = Size(imageWidthInPx, imageHeightInPx))
-        }
-
-        /**
          * Rectangle that is used for cropping image, this rectangle is not the
          * one that draws on screen. We might have 4000x3000 rect while we
          * draw 1000x750px Composable on screen
          */
-        var cropRect by remember() {
+        var rectCrop by remember() {
             mutableStateOf(
                 Rect(
                     offset = Offset.Zero,
@@ -96,12 +89,12 @@ fun ImageCropper(
 
         /**
          * This rectangle is the section of drawing on screen it's correlated with boundRect
-         * and it's dimensions cannot be greater than [boundsRect].
+         * and its dimensions cannot be bigger than draw area.
          *
          * Corners of this [Rect] is used as handle to change bounds and grid is drawn
          * inside this rect
          */
-        var drawRect by remember(imageWidthInPx, imageHeightInPx, contentScale) {
+        var rectDraw by remember(imageWidthInPx, imageHeightInPx, contentScale) {
             mutableStateOf(
                 Rect(
                     offset = Offset.Zero,
@@ -113,8 +106,8 @@ fun ImageCropper(
         /**
          * Temporary rectangle for translating rectangle when user move the image
          */
-        var tempRect by remember {
-            mutableStateOf(drawRect)
+        var rectTemp by remember {
+            mutableStateOf(rectDraw)
         }
 
         var zoom by remember(
@@ -146,10 +139,10 @@ fun ImageCropper(
             if (crop) {
                 val croppedBitmap = Bitmap.createBitmap(
                     scaledImageBitmap.asAndroidBitmap(),
-                    cropRect.left.toInt(),
-                    cropRect.top.toInt(),
-                    cropRect.width.toInt(),
-                    cropRect.height.toInt()
+                    rectCrop.left.toInt(),
+                    rectCrop.top.toInt(),
+                    rectCrop.width.toInt(),
+                    rectCrop.height.toInt()
                 ).asImageBitmap()
 
                 onCropSuccess(croppedBitmap)
@@ -250,18 +243,16 @@ fun ImageCropper(
                     touchPosition = change.position
                     touchRegion = getTouchRegion(
                         position = change.position,
-                        rect = drawRect,
+                        rect = rectDraw,
                         threshold = touchRegionWidth
                     )
-                    tempRect = drawRect
+                    rectTemp = rectDraw
                 },
                 onMove = { change: PointerInputChange ->
                     val position = change.position
 
-
                     val width = constraints.maxWidth.toFloat()
                     val height = constraints.maxHeight.toFloat()
-
 
                     val offsetX =
                         position.x.coerceIn(0f, width)
@@ -272,36 +263,37 @@ fun ImageCropper(
                     when (touchRegion) {
                         TouchRegion.TopLeft -> {
 
-                            drawRect = Rect(
+                            rectDraw = Rect(
                                 left = offsetX,
                                 top = offsetY,
-                                right = drawRect.right,
-                                bottom = drawRect.bottom,
+                                right = rectDraw.right,
+                                bottom = rectDraw.bottom,
                             )
+
                         }
                         TouchRegion.TopRight -> {
 
-                            drawRect = Rect(
-                                left = drawRect.left,
+                            rectDraw = Rect(
+                                left = rectDraw.left,
                                 top = offsetY,
                                 right = offsetX,
-                                bottom = drawRect.bottom,
+                                bottom = rectDraw.bottom,
                             )
                         }
                         TouchRegion.BottomLeft -> {
 
 
-                            drawRect = Rect(
+                            rectDraw = Rect(
                                 left = offsetX,
-                                top = drawRect.top,
-                                right = drawRect.right,
+                                top = rectDraw.top,
+                                right = rectDraw.right,
                                 bottom = offsetY,
                             )
                         }
                         TouchRegion.BottomRight -> {
-                            drawRect = Rect(
-                                left = drawRect.left,
-                                top = drawRect.top,
+                            rectDraw = Rect(
+                                left = rectDraw.left,
+                                top = rectDraw.top,
                                 right = offsetX,
                                 bottom = offsetY,
                             )
@@ -311,12 +303,10 @@ fun ImageCropper(
 
                             val xChange = offsetX - touchPosition.x
                             val yChange = offsetY - touchPosition.y
-                            drawRect = tempRect.translate(xChange, yChange)
+                            rectDraw = rectTemp.translate(xChange, yChange)
                         }
 
-                        else -> {
-
-                        }
+                        else -> Unit
                     }
 
                     if (touchRegion != TouchRegion.None) {
@@ -329,32 +319,32 @@ fun ImageCropper(
                     // FIXME create correct bounding algorithm and animate to image bounds
                     //  when drawing rectangle is out of bounds of image display
                     // bound draw rectangle to image domain
-                    if (drawRect.top < 0) {
-                        drawRect = Rect(
-                            left = drawRect.left,
+                    if (rectDraw.top < 0) {
+                        rectDraw = Rect(
+                            left = rectDraw.left,
                             top = 0f,
-                            right = drawRect.right,
-                            bottom = drawRect.height.coerceAtMost(imageHeightInPx)
+                            right = rectDraw.right,
+                            bottom = rectDraw.height.coerceAtMost(imageHeightInPx)
                         )
-                    } else if (drawRect.left < 0) {
-                        drawRect = Rect(
+                    } else if (rectDraw.left < 0) {
+                        rectDraw = Rect(
                             left = 0f,
-                            top = drawRect.top,
-                            right = drawRect.width.coerceAtMost(imageWidthInPx),
-                            bottom = drawRect.bottom
+                            top = rectDraw.top,
+                            right = rectDraw.width.coerceAtMost(imageWidthInPx),
+                            bottom = rectDraw.bottom
                         )
-                    } else if (drawRect.right > imageWidthInPx) {
-                        drawRect = Rect(
-                            left = (imageWidthInPx - drawRect.width).coerceAtLeast(0f),
-                            top = drawRect.top,
+                    } else if (rectDraw.right > imageWidthInPx) {
+                        rectDraw = Rect(
+                            left = (imageWidthInPx - rectDraw.width).coerceAtLeast(0f),
+                            top = rectDraw.top,
                             right = imageWidthInPx,
-                            bottom = drawRect.bottom
+                            bottom = rectDraw.bottom
                         )
-                    } else if (drawRect.bottom > imageHeightInPx) {
-                        drawRect = Rect(
-                            left = drawRect.left,
-                            top = (imageHeightInPx - drawRect.height).coerceAtLeast(0f),
-                            right = drawRect.right,
+                    } else if (rectDraw.bottom > imageHeightInPx) {
+                        rectDraw = Rect(
+                            left = rectDraw.left,
+                            top = (imageHeightInPx - rectDraw.height).coerceAtLeast(0f),
+                            right = rectDraw.right,
                             bottom = imageHeightInPx
                         )
                     }
@@ -364,15 +354,15 @@ fun ImageCropper(
                     val heightRatio = bitmapHeight / imageHeightInPx
 
                     val offsetXInBitmap =
-                        widthRatio * (offset.x + drawRect.left / zoom)
+                        widthRatio * (offset.x + rectDraw.left / zoom)
                     val offsetYInBitmap =
-                        heightRatio * (offset.y + drawRect.top / zoom)
+                        heightRatio * (offset.y + rectDraw.top / zoom)
 
-                    cropRect = Rect(
+                    rectCrop = Rect(
                         offset = Offset(offsetXInBitmap, offsetYInBitmap),
                         size = Size(
-                            widthRatio * drawRect.width / zoom,
-                            heightRatio * drawRect.height / zoom
+                            widthRatio * rectDraw.width / zoom,
+                            heightRatio * rectDraw.height / zoom
                         )
                     )
 
@@ -380,14 +370,13 @@ fun ImageCropper(
                 }
             )
 
-
         Box(contentAlignment = Alignment.Center) {
             CropperImpl(
                 modifier = Modifier.size(imageWidth, imageHeight),
                 imageOverlayModifier = imageModifier,
                 imageDrawingModifier = drawingModifier,
                 imageBitmap = scaledImageBitmap,
-                rect = drawRect,
+                rect = rectDraw,
                 touchRegion = touchRegion,
                 touchRegionWidth = touchRegionWidth
             )
@@ -402,8 +391,8 @@ fun ImageCropper(
                         "offset: $offset\n" +
                         "scaledImageWidth: ${imageWidthInPx / zoom}, scaledImageHeight: ${imageHeightInPx / zoom}\n" +
                         "scaledBitmapWidth: ${bitmapWidth / zoom}, scaledBitmapHeight: ${bitmapHeight / zoom}\n" +
-                        "cropRect: $cropRect\n" +
-                        "drawRect: $drawRect"
+                        "cropRect: $rectCrop\n" +
+                        "drawRect: $rectDraw"
             )
         }
     }
@@ -557,9 +546,6 @@ private fun inDistance(offset1: Offset, offset2: Offset, target: Float): Boolean
     return distance < target
 }
 
-enum class TouchRegion {
-    TopLeft, TopRight, BottomLeft, BottomRight, Inside, None
-}
 
 
 /**
