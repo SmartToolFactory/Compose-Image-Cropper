@@ -5,21 +5,37 @@ package com.smarttoolfactory.composeimagecropper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImagePainter
+import coil.compose.AsyncImagePainter.State.Empty.painter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
-import com.smarttoolfactory.composeimagecropper.demo.CanvasDemo
-import com.smarttoolfactory.composeimagecropper.demo.ImageCropDemo
-import com.smarttoolfactory.composeimagecropper.demo.ImageScaleDemo
-import com.smarttoolfactory.composeimagecropper.demo.ThumbnailDemo
+import com.smarttoolfactory.composeimagecropper.demo.*
 import com.smarttoolfactory.composeimagecropper.ui.theme.ComposeImageCropperTheme
 import kotlinx.coroutines.launch
 
@@ -33,11 +49,11 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        HomeContent()
-//                            ImageCropDemo()
-                        
-                    }
+                   Column(modifier= Modifier.fillMaxSize()) {
+//                       HomeContent()
+                       ImageCropDemo()
+
+                   }
                 }
             }
         }
@@ -94,8 +110,6 @@ private fun HomeContent() {
             when (page) {
 
                 0 -> ImageCropDemo()
-                1 -> ImageScaleDemo()
-                2 -> ThumbnailDemo()
                 else -> CanvasDemo()
             }
         }
@@ -105,7 +119,5 @@ private fun HomeContent() {
 internal val tabList =
     listOf(
         "Image Cropping",
-        "Images Scaling",
-        "Image Thumbnail",
         "Native and Compose Canvas",
     )

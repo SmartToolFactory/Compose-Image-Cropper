@@ -31,7 +31,9 @@ import com.smarttoolfactory.imagecropper.ImageCropper
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButton
-import com.smarttoolfactory.imagecropper.ImageWithConstraints
+import com.smarttoolfactory.image.ImageWithConstraints
+import com.smarttoolfactory.imagecropper.ImageCropperAlt
+import com.smarttoolfactory.imagecropper.ImageCropperAlt2
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -115,7 +117,7 @@ private fun MainContent(bottomSheetScaffoldState: BottomSheetScaffoldState) {
                     contentScale = it
                 }
 
-                ImageCropper(
+                ImageCropperAlt2(
                     modifier = modifier,
                     imageBitmap = imageBitmap,
                     contentScale = contentScale,
@@ -199,7 +201,8 @@ private fun ShowCroppedImageDialog(imageBitmap: ImageBitmap, onDismissRequest: (
                     .aspectRatio(4 / 3f)
                     .border(2.dp, Color.Red),
                 contentScale = ContentScale.Fit,
-                imageBitmap = imageBitmap, contentDescription = "result"
+                imageBitmap = imageBitmap,
+                contentDescription = "result"
             )
         },
         confirmButton = {

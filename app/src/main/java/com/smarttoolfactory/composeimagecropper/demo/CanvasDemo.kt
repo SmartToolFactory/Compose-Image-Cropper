@@ -1,6 +1,7 @@
 package com.smarttoolfactory.composeimagecropper.demo
 
 import android.graphics.Bitmap
+import android.graphics.PorterDuff
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -43,14 +44,14 @@ fun CanvasDemo() {
         val aspectRatio2 = imageBitmap2.width / imageBitmap2.height.toFloat()
 
         Text("Native Canvas Clipping")
-        NativeCanvasSample1(
-            imageBitmap = imageBitmap1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(aspectRatio1)
-        )
+//        NativeCanvasSample1(
+//            imageBitmap = imageBitmap1,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .aspectRatio(aspectRatio1)
+//        )
 
-        Spacer(modifier = Modifier.height(50.dp))
+//        Spacer(modifier = Modifier.height(50.dp))
         Text("Native Canvas BlendMode Clear")
         NativeCanvasSample2(
             imageBitmap = imageBitmap2,
@@ -58,97 +59,30 @@ fun CanvasDemo() {
                 .fillMaxWidth()
                 .aspectRatio(aspectRatio2)
         )
-
-        val dstBitmap = ImageBitmap.imageResource(id = R.drawable.landscape1)
-        val aspectRatioDst = dstBitmap.width / dstBitmap.height.toFloat()
-
-        Spacer(modifier = Modifier.height(50.dp))
-        Text("Compose Canvas BlendMode Clear")
-        ComposeCanvasSample(
-            imageBitmap = dstBitmap,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(aspectRatioDst)
-        )
-
-        Spacer(modifier = Modifier.height(50.dp))
-        Text("Compose Canvas Path + BlendMode Clear")
-        ComposeCanvasSample2(
-            imageBitmap = dstBitmap,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(aspectRatioDst)
-        )
+//
+//        val dstBitmap = ImageBitmap.imageResource(id = R.drawable.landscape1)
+//        val aspectRatioDst = dstBitmap.width / dstBitmap.height.toFloat()
+//
+//        Spacer(modifier = Modifier.height(50.dp))
+//        Text("Compose Canvas BlendMode Clear")
+//        ComposeCanvasSample(
+//            imageBitmap = dstBitmap,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .aspectRatio(aspectRatioDst)
+//        )
+//
+//        Spacer(modifier = Modifier.height(50.dp))
+//        Text("Compose Canvas Path + BlendMode Clear")
+//        ComposeCanvasSample2(
+//            imageBitmap = dstBitmap,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .aspectRatio(aspectRatioDst)
+//        )
     }
 }
 
-
-@Composable
-fun NativeCanvasSample1(imageBitmap: ImageBitmap, modifier: Modifier) {
-    BoxWithConstraints(modifier) {
-
-        val imageWidth = constraints.maxWidth
-        val imageHeight = constraints.maxHeight
-
-        val bitmapWidth = imageBitmap.width
-        val bitmapHeight = imageBitmap.height
-
-
-        val canvas: Canvas = Canvas(imageBitmap)
-
-        val imagePaint = remember {
-            Paint().apply {
-                blendMode = BlendMode.SrcIn
-            }
-        }
-
-        val paint = remember {
-            Paint()
-        }
-
-        canvas.run {
-            val nativeCanvas = this.nativeCanvas
-            val canvasWidth = nativeCanvas.width.toFloat()
-            val canvasHeight = nativeCanvas.height.toFloat()
-
-            println(
-                "🔥 Canvas Width: $canvasWidth, canvasHeight: $canvasHeight, " +
-                        "imageWidth: $imageWidth, imageHeight: $imageHeight\n" +
-                        "bitmapWidth: $bitmapWidth, bitmapHeight: $bitmapHeight\n" +
-                        "rect: ${nativeCanvas.clipBounds.toComposeRect()}"
-            )
-            saveLayer(nativeCanvas.clipBounds.toComposeRect(), imagePaint)
-
-            val polyPath = createPolygonPath(
-                cx = canvasWidth / 2,
-                cy = canvasHeight / 2,
-                sides = 8,
-                radius = canvasHeight.coerceAtMost(canvasWidth) / 2
-            )
-
-            drawPath(polyPath, paint)
-
-//            drawCircle(
-//                center = Offset(canvasWidth / 2, canvasHeight / 2),
-//                radius = canvasHeight.coerceAtMost(canvasWidth) / 2,
-//                paint = paint
-//            )
-
-            drawImage(image = imageBitmap, topLeftOffset = Offset.Zero, imagePaint)
-            restore()
-        }
-
-        Image(
-            modifier = Modifier
-                .background(Color.LightGray)
-                .border(2.dp, Color.Red),
-            bitmap = imageBitmap,
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds
-        )
-
-    }
-}
 
 // FIXME This one does not refresh correctly, here is the question i asked on Stackoverflow
 // https://stackoverflow.com/questions/72168588/jetpack-compose-androidx-compose-ui-graphics-canvas-not-refreshing-correctly-for
@@ -188,8 +122,29 @@ fun NativeCanvasSample2(imageBitmap: ImageBitmap, modifier: Modifier) {
             delayAfterDownInMillis = 20
         )
 
-        val canvas: Canvas = Canvas(imageBitmap)
+        val canvas: Canvas = remember {
+            Canvas(imageBitmap)
+        }
 
+        val paint = remember {
+            android.graphics.Paint().apply {
+//                    color = android.graphics.Color.TRANSPARENT
+//                    xfermode = PorterDuffXfermode(PorterDuff.Mode.MULTIPLY)
+            }
+        }
+
+        val paintBg2 = remember {
+            android.graphics.Paint().apply {
+                color = 0x55000000
+            }
+        }
+
+        val paintClear = remember {
+            android.graphics.Paint().apply {
+                color = android.graphics.Color.RED
+//                    xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            }
+        }
 
         val paintBg = remember {
             Paint().apply {
@@ -215,6 +170,7 @@ fun NativeCanvasSample2(imageBitmap: ImageBitmap, modifier: Modifier) {
             }
         }
 
+
         canvas.apply {
             val nativeCanvas = this.nativeCanvas
             val canvasWidth = nativeCanvas.width.toFloat()
@@ -222,38 +178,19 @@ fun NativeCanvasSample2(imageBitmap: ImageBitmap, modifier: Modifier) {
 
             drawImage(imageBitmap, topLeftOffset = Offset.Zero, paintImage)
 
-            val paint = remember {
-                android.graphics.Paint().apply {
-//                    color = android.graphics.Color.TRANSPARENT
-//                    xfermode = PorterDuffXfermode(PorterDuff.Mode.MULTIPLY)
-                }
-            }
-
-            val paintBg2 = remember {
-                android.graphics.Paint().apply {
-                    color = 0x55000000
-                }
-            }
-
-            val paintClear = remember {
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.TRANSPARENT
-//                    xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-                }
-            }
-
+            println("CANVAS DRAWING...")
 
             with(canvas.nativeCanvas) {
 //                val checkPoint = saveLayer(nativeCanvas.clipBounds.toRectF(), paintClear)
-//                val checkPoint = saveLayer(null,null)
+                val checkPoint = saveLayer(null, null)
 //                this.drawColor(android.graphics.Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY)
-                this.drawBitmap(imageBitmap.asAndroidBitmap(), 0f, 0f, paintClear)
-                this.drawRect(0f, 0f, canvasWidth, canvasHeight, paintBg2)
-//                this.drawCircle(offset.x, offset.y, 100f, paintClear)
-//                restoreToCount(checkPoint)
+//                    this.drawBitmap(imageBitmap.asAndroidBitmap(), 0f, 0f, paintClear)
+//                    this.drawRect(0f, 0f, canvasWidth, canvasHeight, paintBg2)
+                this.drawCircle(offset.x, offset.y, 100f, paintClear)
+                restoreToCount(checkPoint)
+
             }
         }
-
 
         Image(
             modifier = canvasModifier,

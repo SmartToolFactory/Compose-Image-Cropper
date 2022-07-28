@@ -50,10 +50,11 @@ dependencies {
 
     implementation project(':imagecropper')
 
-    implementation 'com.github.SmartToolFactory:Compose-Extended-Gestures:1.2.0'
+    implementation 'com.github.SmartToolFactory:Compose-Extended-Gestures:2.0.0'
+    implementation 'com.github.SmartToolFactory:Compose-Image:1.1.0'
 
     implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.0'
 
     implementation("com.google.modernstorage:modernstorage-photopicker:1.0.0-alpha06")
 
@@ -68,17 +69,17 @@ dependencies {
     implementation "androidx.compose.material:material-icons-core:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     // Integration with activities
-    implementation 'androidx.activity:activity-compose:1.4.0'
+    implementation 'androidx.activity:activity-compose:1.5.0'
     // Integration with ViewModels
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0'
 
     // Jetpack Compose
-    implementation "androidx.compose.material3:material3:1.0.0-alpha13"
+    implementation "androidx.compose.material3:material3:1.0.0-alpha14"
 
     // Coil
     implementation("io.coil-kt:coil-compose:2.1.0")
 
-    def accompanist_version = "0.24.9-beta"
+    def accompanist_version = "0.24.12-rc"
     // Accompanist
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-pager:$accompanist_version"
